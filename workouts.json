@@ -1,0 +1,22 @@
+[
+  {
+    "date": "2026-03-19",
+    "planned_week": "intro",
+    "planned_day": "thu",
+    "type": "running",
+    "distance_km": 3,
+    "duration_min": 20,
+    "rpe": 4,
+    "note": "Första passet!"
+  },
+  {
+    "date": "2026-03-21",
+    "planned_week": null,
+    "planned_day": null,
+    "type": "running",
+    "distance_km": 2,
+    "duration_min": 14,
+    "rpe": 3,
+    "note": "Extra liten runda"
+  }
+]
