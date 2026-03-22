@@ -1093,7 +1093,113 @@
     }
 
     function renderChart(plan, workouts) {
-      // TODO: Task 9
+      const el = document.getElementById('chart');
+
+      // X-axis labels
+      const labels = ['Intro', 'V1', 'V2', 'V3', 'V4', 'V5', 'V6', 'V7', 'V8', 'V9'];
+
+      // Planned km per week (from plan.weeks[].total_km)
+      const plannedKm = plan.weeks.map(week => week.total_km);
+
+      // Actual km per week (sum of planned + bonus workouts)
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      const actualKm = plan.weeks.map(week => {
+        const weekStart = new Date(week.start_date);
+        weekStart.setHours(0, 0, 0, 0);
+        // For future weeks return 0
+        if (weekStart > today) return 0;
+
+        const planned = getWorkoutsForWeek(workouts, week.id);
+        const bonus   = getBonusWorkoutsForWeek(workouts, week.id, week.start_date);
+        const all     = [...planned, ...bonus];
+        return all.reduce((sum, w) => sum + (w.distance_km || 0), 0);
+      });
+
+      el.innerHTML = `
+        <p class="section-title">KILOMETERVOLYM</p>
+        <div style="position:relative; height:250px;">
+          <canvas id="volumeChart"></canvas>
+        </div>
+      `;
+
+      const ctx = document.getElementById('volumeChart').getContext('2d');
+      new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels,
+          datasets: [
+            {
+              label: 'Planerat',
+              data: plannedKm,
+              backgroundColor: 'rgba(59, 130, 246, 0.2)',
+              borderColor: 'rgba(59, 130, 246, 0.6)',
+              borderWidth: 2,
+              borderDash: [5, 5],
+              borderRadius: 4,
+              order: 2
+            },
+            {
+              label: 'Genomfört',
+              data: actualKm,
+              backgroundColor: '#3b82f6',
+              borderColor: '#3b82f6',
+              borderWidth: 0,
+              borderRadius: 4,
+              order: 1
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              labels: {
+                color: '#94a3b8',
+                boxWidth: 12,
+                padding: 16,
+                borderWidth: 0
+              }
+            },
+            tooltip: {
+              backgroundColor: 'rgba(15, 23, 42, 0.9)',
+              titleColor: '#94a3b8',
+              bodyColor: '#e2e8f0',
+              borderColor: 'rgba(255, 255, 255, 0.1)',
+              borderWidth: 1,
+              callbacks: {
+                label: ctx => `${ctx.dataset.label}: ${ctx.parsed.y} km`
+              }
+            }
+          },
+          scales: {
+            x: {
+              grid: {
+                color: 'rgba(255, 255, 255, 0.06)'
+              },
+              ticks: {
+                color: '#64748b'
+              },
+              border: {
+                display: false
+              }
+            },
+            y: {
+              grid: {
+                color: 'rgba(255, 255, 255, 0.06)'
+              },
+              ticks: {
+                color: '#64748b'
+              },
+              border: {
+                display: false
+              }
+            }
+          }
+        }
+      });
     }
 
     // ─── Main render orchestrator ─────────────────────────────────────
