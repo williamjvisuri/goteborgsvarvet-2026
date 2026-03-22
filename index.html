@@ -801,25 +801,10 @@
         return;
       }
 
-      let html = '';
-      if (weeksLeft > 0) {
-        html += `
-          <div class="countdown-chip">
-            <span class="countdown-num">${weeksLeft}</span>
-            <span class="countdown-unit">${weeksLeft === 1 ? 'vecka' : 'veckor'}</span>
-          </div>`;
-      }
-      if (extraDays > 0 || weeksLeft === 0) {
-        html += `
-          <div class="countdown-chip">
-            <span class="countdown-num">${extraDays}</span>
-            <span class="countdown-unit">${extraDays === 1 ? 'dag' : 'dagar'}</span>
-          </div>`;
-      }
-      html += `
-        <div class="countdown-chip race-day">
+      const html = `
+        <div class="countdown-chip">
           <span class="countdown-num">${daysLeft}</span>
-          <span class="countdown-unit">totalt</span>
+          <span class="countdown-unit">${daysLeft === 1 ? 'dag' : 'dagar'} kvar</span>
         </div>`;
 
       el.innerHTML = html;
