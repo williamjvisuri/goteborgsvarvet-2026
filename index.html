@@ -1,0 +1,746 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Göteborgsvarvet 2026 — Träningsplan</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+  <style>
+    /* ─── Design tokens ─────────────────────────────────────────────── */
+    :root {
+      --bg:        #0f172a;
+      --surface:   #1e293b;
+      --surface2:  #243048;
+      --border:    #334155;
+      --text:      #e2e8f0;
+      --text-muted:#94a3b8;
+      --text-dim:  #64748b;
+
+      --green:  #22c55e;
+      --blue:   #3b82f6;
+      --purple: #8b5cf6;
+      --grey:   #475569;
+      --amber:  #f59e0b;
+      --red:    #ef4444;
+
+      --green-bg:  rgba(34,197,94,.12);
+      --blue-bg:   rgba(59,130,246,.12);
+      --purple-bg: rgba(139,92,246,.12);
+      --grey-bg:   rgba(71,85,105,.15);
+      --amber-bg:  rgba(245,158,11,.12);
+      --red-bg:    rgba(239,68,68,.12);
+
+      --radius-sm: 6px;
+      --radius:    10px;
+      --radius-lg: 16px;
+      --radius-xl: 24px;
+
+      --shadow: 0 1px 3px rgba(0,0,0,.4), 0 1px 2px rgba(0,0,0,.3);
+      --shadow-md: 0 4px 16px rgba(0,0,0,.4);
+    }
+
+    /* ─── Reset & base ──────────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { font-size: 16px; scroll-behavior: smooth; }
+
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ─── Layout container ──────────────────────────────────────────── */
+    .container {
+      max-width: 700px;
+      margin: 0 auto;
+      padding: 0 1rem 4rem;
+    }
+
+    /* ─── Hero ──────────────────────────────────────────────────────── */
+    .hero {
+      background: linear-gradient(135deg, #0f172a 0%, #1a2744 40%, #1e2d52 70%, #162039 100%);
+      border-bottom: 1px solid var(--border);
+      padding: 2.5rem 1rem 2rem;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 60% 50% at 20% 20%, rgba(59,130,246,.1) 0%, transparent 60%),
+        radial-gradient(ellipse 50% 60% at 80% 80%, rgba(139,92,246,.08) 0%, transparent 60%);
+      pointer-events: none;
+    }
+
+    .hero-inner {
+      max-width: 700px;
+      margin: 0 auto;
+      position: relative;
+    }
+
+    .hero-label {
+      display: inline-block;
+      font-size: .68rem;
+      font-weight: 700;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: var(--blue);
+      background: var(--blue-bg);
+      border: 1px solid rgba(59,130,246,.25);
+      border-radius: var(--radius-sm);
+      padding: .2rem .55rem;
+      margin-bottom: .85rem;
+    }
+
+    .hero-title {
+      font-size: clamp(1.75rem, 6vw, 2.6rem);
+      font-weight: 800;
+      letter-spacing: -.02em;
+      line-height: 1.1;
+      color: var(--text);
+      margin-bottom: .4rem;
+    }
+
+    .hero-subtitle {
+      font-size: 1rem;
+      color: var(--text-muted);
+      font-weight: 500;
+      margin-bottom: 1.75rem;
+    }
+
+    .hero-countdown {
+      display: flex;
+      gap: .75rem;
+      flex-wrap: wrap;
+    }
+
+    .countdown-chip {
+      background: rgba(255,255,255,.05);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: .6rem 1rem;
+      text-align: center;
+      min-width: 90px;
+    }
+
+    .countdown-num {
+      display: block;
+      font-size: 1.9rem;
+      font-weight: 800;
+      line-height: 1;
+      color: var(--text);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .countdown-unit {
+      display: block;
+      font-size: .72rem;
+      font-weight: 600;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-top: .2rem;
+    }
+
+    .countdown-chip.race-day {
+      border-color: var(--amber);
+      background: var(--amber-bg);
+    }
+
+    .countdown-chip.race-day .countdown-num { color: var(--amber); }
+    .countdown-chip.race-day .countdown-unit { color: var(--amber); }
+
+    /* ─── Section wrapper ───────────────────────────────────────────── */
+    .section {
+      margin-top: 1.5rem;
+    }
+
+    .section-title {
+      font-size: .7rem;
+      font-weight: 700;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      color: var(--text-dim);
+      margin-bottom: .75rem;
+    }
+
+    /* ─── Cards / surfaces ──────────────────────────────────────────── */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 1.1rem 1.2rem;
+      box-shadow: var(--shadow);
+    }
+
+    .card + .card { margin-top: .6rem; }
+
+    /* ─── Progress bars ─────────────────────────────────────────────── */
+    .progress-bar-wrap {
+      background: rgba(255,255,255,.06);
+      border-radius: 999px;
+      overflow: hidden;
+      height: 8px;
+    }
+
+    .progress-bar-fill {
+      height: 100%;
+      border-radius: 999px;
+      background: linear-gradient(90deg, var(--blue) 0%, var(--purple) 100%);
+      transition: width .5s ease;
+      min-width: 2px;
+    }
+
+    .progress-bar-fill.green {
+      background: linear-gradient(90deg, #16a34a 0%, var(--green) 100%);
+    }
+
+    .progress-bar-wrap.thick { height: 12px; }
+
+    .progress-label {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: .35rem;
+    }
+
+    .progress-label-text {
+      font-size: .85rem;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .progress-label-pct {
+      font-size: .8rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* ─── Stats grid ────────────────────────────────────────────────── */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: .6rem;
+    }
+
+    @media (min-width: 480px) {
+      .stats-grid { grid-template-columns: repeat(4, 1fr); }
+    }
+
+    .stat-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: .9rem 1rem;
+      box-shadow: var(--shadow);
+      display: flex;
+      flex-direction: column;
+      gap: .2rem;
+    }
+
+    .stat-value {
+      font-size: 1.6rem;
+      font-weight: 800;
+      line-height: 1;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .stat-label {
+      font-size: .72rem;
+      font-weight: 600;
+      letter-spacing: .04em;
+      color: var(--text-muted);
+      text-transform: uppercase;
+    }
+
+    .stat-sub {
+      font-size: .75rem;
+      color: var(--text-dim);
+      margin-top: .1rem;
+    }
+
+    /* ─── Day grid (week view) ──────────────────────────────────────── */
+    .day-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: .35rem;
+    }
+
+    @media (max-width: 380px) {
+      .day-grid { gap: .2rem; }
+    }
+
+    .day-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: .5rem .3rem;
+      text-align: center;
+      min-height: 72px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: .2rem;
+      position: relative;
+      transition: border-color .15s, background .15s;
+      cursor: default;
+    }
+
+    .day-card:hover { border-color: var(--blue); background: var(--surface2); }
+
+    .day-card.done    { border-color: var(--green); background: var(--green-bg); }
+    .day-card.planned { border-color: var(--blue);  background: var(--blue-bg); }
+    .day-card.missed  { border-color: var(--red);   background: var(--red-bg); }
+    .day-card.bonus   { border-color: var(--purple); background: var(--purple-bg); }
+    .day-card.rest    { border-color: transparent; background: rgba(255,255,255,.02); }
+    .day-card.race    { border-color: var(--amber); background: var(--amber-bg); }
+    .day-card.today   { box-shadow: 0 0 0 2px var(--blue); }
+
+    .day-name {
+      font-size: .62rem;
+      font-weight: 700;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+    }
+
+    .day-icon {
+      font-size: 1.1rem;
+      line-height: 1;
+    }
+
+    .day-label {
+      font-size: .6rem;
+      font-weight: 600;
+      color: var(--text-dim);
+      line-height: 1.2;
+    }
+
+    .day-km {
+      font-size: .65rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* ─── Badge ─────────────────────────────────────────────────────── */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: .25rem;
+      font-size: .68rem;
+      font-weight: 700;
+      letter-spacing: .04em;
+      text-transform: uppercase;
+      padding: .2rem .5rem;
+      border-radius: var(--radius-sm);
+    }
+
+    .badge.green  { color: var(--green);  background: var(--green-bg);  border: 1px solid rgba(34,197,94,.3); }
+    .badge.blue   { color: var(--blue);   background: var(--blue-bg);   border: 1px solid rgba(59,130,246,.3); }
+    .badge.purple { color: var(--purple); background: var(--purple-bg); border: 1px solid rgba(139,92,246,.3); }
+    .badge.grey   { color: var(--grey);   background: var(--grey-bg);   border: 1px solid rgba(71,85,105,.3); }
+    .badge.amber  { color: var(--amber);  background: var(--amber-bg);  border: 1px solid rgba(245,158,11,.3); }
+    .badge.red    { color: var(--red);    background: var(--red-bg);    border: 1px solid rgba(239,68,68,.3); }
+
+    /* ─── Week list rows ────────────────────────────────────────────── */
+    .week-row {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: .9rem 1.1rem;
+      margin-bottom: .5rem;
+      box-shadow: var(--shadow);
+      cursor: default;
+      transition: border-color .15s, background .15s;
+    }
+
+    .week-row:hover { border-color: var(--blue); background: var(--surface2); }
+
+    .week-row.current-week-row { border-color: var(--blue); }
+
+    .week-row-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: .75rem;
+      margin-bottom: .6rem;
+    }
+
+    .week-row-meta {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .week-row-label {
+      font-size: .95rem;
+      font-weight: 700;
+      color: var(--text);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .week-row-subtitle {
+      font-size: .78rem;
+      color: var(--text-muted);
+      margin-top: .1rem;
+    }
+
+    .week-row-right {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: .25rem;
+      flex-shrink: 0;
+    }
+
+    .week-km {
+      font-size: .9rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+    }
+
+    .week-progress-bar {
+      width: 100%;
+      margin-top: .4rem;
+    }
+
+    /* ─── Chart wrapper ─────────────────────────────────────────────── */
+    .chart-wrap {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 1.1rem 1.2rem;
+      box-shadow: var(--shadow);
+      position: relative;
+    }
+
+    .chart-wrap canvas {
+      display: block;
+      max-height: 220px;
+    }
+
+    /* ─── Current week header ───────────────────────────────────────── */
+    .current-week-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: .5rem;
+      margin-bottom: .75rem;
+      flex-wrap: wrap;
+    }
+
+    .current-week-title {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .current-week-phase {
+      font-size: .72rem;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    /* ─── Loading / error states ────────────────────────────────────── */
+    .loading {
+      text-align: center;
+      color: var(--text-dim);
+      font-size: .9rem;
+      padding: 2rem 1rem;
+    }
+
+    .error-msg {
+      background: var(--red-bg);
+      border: 1px solid rgba(239,68,68,.3);
+      border-radius: var(--radius);
+      padding: .75rem 1rem;
+      color: var(--red);
+      font-size: .85rem;
+      margin-top: 1rem;
+    }
+
+    /* ─── Utility ───────────────────────────────────────────────────── */
+    .flex-row {
+      display: flex;
+      align-items: center;
+      gap: .5rem;
+    }
+
+    .flex-between {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: .5rem;
+    }
+
+    .text-muted { color: var(--text-muted); }
+    .text-dim   { color: var(--text-dim); }
+    .text-sm    { font-size: .85rem; }
+    .text-xs    { font-size: .75rem; }
+    .font-bold  { font-weight: 700; }
+    .mt-sm      { margin-top: .4rem; }
+    .mt-md      { margin-top: .75rem; }
+    .mt-lg      { margin-top: 1.25rem; }
+
+    /* ─── Responsive ────────────────────────────────────────────────── */
+    @media (max-width: 640px) {
+      .container { padding: 0 .75rem 3rem; }
+      .card { padding: .9rem 1rem; }
+      .week-row { padding: .8rem .9rem; }
+      .hero { padding: 2rem .75rem 1.75rem; }
+      .countdown-chip { min-width: 78px; padding: .5rem .8rem; }
+      .countdown-num { font-size: 1.6rem; }
+    }
+
+    @media (max-width: 380px) {
+      .stats-grid { grid-template-columns: 1fr 1fr; }
+      .hero-title { font-size: 1.6rem; }
+      .hero-countdown { gap: .5rem; }
+      .countdown-chip { min-width: 68px; padding: .45rem .6rem; }
+      .countdown-num { font-size: 1.4rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ─── Hero ──────────────────────────────────────────────────────── -->
+  <header class="hero">
+    <div class="hero-inner">
+      <span class="hero-label">Träningsplan</span>
+      <h1 class="hero-title">Göteborgsvarvet 2026</h1>
+      <p class="hero-subtitle">21.1 km — Lördag 23 maj</p>
+      <div class="hero-countdown" id="hero-countdown">
+        <!-- Populated by renderHero() -->
+      </div>
+    </div>
+  </header>
+
+  <!-- ─── Main content ──────────────────────────────────────────────── -->
+  <main class="container">
+
+    <!-- Progress overview -->
+    <section class="section" id="progress">
+      <p class="loading">Laddar...</p>
+    </section>
+
+    <!-- Stats -->
+    <section class="section" id="stats"></section>
+
+    <!-- Current week -->
+    <section class="section" id="current-week"></section>
+
+    <!-- Chart -->
+    <section class="section" id="chart"></section>
+
+    <!-- All weeks -->
+    <section class="section" id="all-weeks"></section>
+
+  </main>
+
+  <!-- ─── JS ───────────────────────────────────────────────────────── -->
+  <script>
+    // ─── Helper functions ─────────────────────────────────────────────
+
+    /**
+     * Find which week object a given date falls in.
+     * Each week spans start_date through start_date + 6 days.
+     */
+    function getWeekForDate(plan, date) {
+      const d = new Date(date);
+      d.setHours(0, 0, 0, 0);
+      for (const week of plan.weeks) {
+        const start = new Date(week.start_date);
+        start.setHours(0, 0, 0, 0);
+        const end = new Date(start);
+        end.setDate(end.getDate() + 6);
+        end.setHours(23, 59, 59, 999);
+        if (d >= start && d <= end) return week;
+      }
+      return null;
+    }
+
+    /**
+     * Returns the lowercase 3-letter day key for a date: "mon", "tue", etc.
+     */
+    function getDayKey(date) {
+      const days = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
+      const d = new Date(date);
+      return days[d.getDay()];
+    }
+
+    /**
+     * Returns all logged workouts for a given planned week id.
+     */
+    function getWorkoutsForWeek(workouts, weekId) {
+      return workouts.filter(w => w.planned_week === weekId);
+    }
+
+    /**
+     * Returns bonus workouts (planned_week === null) that fall within
+     * the 7-day range starting at weekStartDate.
+     */
+    function getBonusWorkoutsForWeek(workouts, weekId, weekStartDate) {
+      const start = new Date(weekStartDate);
+      start.setHours(0, 0, 0, 0);
+      const end = new Date(start);
+      end.setDate(end.getDate() + 6);
+      end.setHours(23, 59, 59, 999);
+      return workouts.filter(w => {
+        if (w.planned_week !== null) return false;
+        const wd = new Date(w.date);
+        return wd >= start && wd <= end;
+      });
+    }
+
+    /**
+     * Counts non-null, non-rest sessions planned in a week.
+     */
+    function countPlannedSessions(week) {
+      return Object.values(week.days).filter(
+        d => d !== null && d.type !== 'rest'
+      ).length;
+    }
+
+    /**
+     * Counts logged workouts that belong to a specific planned week.
+     */
+    function countCompletedPlanned(workouts, weekId) {
+      return workouts.filter(w => w.planned_week === weekId).length;
+    }
+
+    /**
+     * Returns true if the given date string (YYYY-MM-DD) is strictly in the past.
+     */
+    function isDatePassed(dateStr) {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const d = new Date(dateStr);
+      d.setHours(0, 0, 0, 0);
+      return d < today;
+    }
+
+    /**
+     * Formats a YYYY-MM-DD date string for display (e.g. "19 mar").
+     */
+    function formatDate(dateStr) {
+      const d = new Date(dateStr);
+      return d.toLocaleDateString('sv-SE', { day: 'numeric', month: 'short' });
+    }
+
+    // ─── Render: Hero ─────────────────────────────────────────────────
+
+    function renderHero(plan) {
+      const raceDate = new Date(plan.race.date);
+      raceDate.setHours(0, 0, 0, 0);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      const msLeft = raceDate - today;
+      const daysLeft = Math.max(0, Math.ceil(msLeft / (1000 * 60 * 60 * 24)));
+      const weeksLeft = Math.floor(daysLeft / 7);
+      const extraDays = daysLeft % 7;
+
+      const el = document.getElementById('hero-countdown');
+      if (daysLeft <= 0) {
+        el.innerHTML = `
+          <div class="countdown-chip race-day">
+            <span class="countdown-num">IDAG</span>
+            <span class="countdown-unit">Race day!</span>
+          </div>`;
+        return;
+      }
+
+      let html = '';
+      if (weeksLeft > 0) {
+        html += `
+          <div class="countdown-chip">
+            <span class="countdown-num">${weeksLeft}</span>
+            <span class="countdown-unit">${weeksLeft === 1 ? 'vecka' : 'veckor'}</span>
+          </div>`;
+      }
+      if (extraDays > 0 || weeksLeft === 0) {
+        html += `
+          <div class="countdown-chip">
+            <span class="countdown-num">${extraDays}</span>
+            <span class="countdown-unit">${extraDays === 1 ? 'dag' : 'dagar'}</span>
+          </div>`;
+      }
+      html += `
+        <div class="countdown-chip race-day">
+          <span class="countdown-num">${daysLeft}</span>
+          <span class="countdown-unit">totalt</span>
+        </div>`;
+
+      el.innerHTML = html;
+    }
+
+    // ─── Render stubs ─────────────────────────────────────────────────
+
+    function renderProgress(plan, workouts) {
+      // TODO: Task 5
+    }
+
+    function renderStats(plan, workouts) {
+      // TODO: Task 6
+    }
+
+    function renderCurrentWeek(plan, workouts) {
+      // TODO: Task 7
+    }
+
+    function renderAllWeeks(plan, workouts) {
+      // TODO: Task 8
+    }
+
+    function renderChart(plan, workouts) {
+      // TODO: Task 9
+    }
+
+    // ─── Main render orchestrator ─────────────────────────────────────
+
+    function render(plan, workouts) {
+      renderHero(plan);
+      renderProgress(plan, workouts);
+      renderStats(plan, workouts);
+      renderCurrentWeek(plan, workouts);
+      renderAllWeeks(plan, workouts);
+      renderChart(plan, workouts);
+    }
+
+    // ─── Bootstrap: fetch data ────────────────────────────────────────
+
+    document.addEventListener('DOMContentLoaded', () => {
+      Promise.all([
+        fetch('plan.json').then(r => {
+          if (!r.ok) throw new Error(`plan.json: ${r.status}`);
+          return r.json();
+        }),
+        fetch('workouts.json').then(r => {
+          if (!r.ok) throw new Error(`workouts.json: ${r.status}`);
+          return r.json();
+        })
+      ])
+        .then(([plan, workouts]) => {
+          render(plan, workouts);
+        })
+        .catch(err => {
+          console.error('Failed to load data:', err);
+          document.getElementById('progress').innerHTML =
+            `<div class="error-msg">Kunde inte ladda data: ${err.message}</div>`;
+        });
+    });
+  </script>
+</body>
+</html>
