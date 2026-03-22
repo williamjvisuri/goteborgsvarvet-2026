@@ -5,38 +5,48 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Göteborgsvarvet 2026 — Träningsplan</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
     /* ─── Design tokens ─────────────────────────────────────────────── */
     :root {
-      --bg:        #0f172a;
-      --surface:   #1e293b;
-      --surface2:  #243048;
-      --border:    #334155;
-      --text:      #e2e8f0;
-      --text-muted:#94a3b8;
-      --text-dim:  #64748b;
+      --bg:        #f5f3ef;
+      --surface:   #ffffff;
+      --surface2:  #faf9f7;
+      --border:    #e8e4dd;
+      --text:      #1a1a2e;
+      --text-muted:#6b7280;
+      --text-dim:  #9ca3af;
 
-      --green:  #22c55e;
-      --blue:   #3b82f6;
-      --purple: #8b5cf6;
-      --grey:   #475569;
-      --amber:  #f59e0b;
-      --red:    #ef4444;
+      --green:  #1a7f4f;
+      --blue:   #1565a0;
+      --purple: #7c3aed;
+      --grey:   #9ca3af;
+      --amber:  #b45309;
+      --red:    #c42b2b;
 
-      --green-bg:  rgba(34,197,94,.12);
-      --blue-bg:   rgba(59,130,246,.12);
-      --purple-bg: rgba(139,92,246,.12);
-      --grey-bg:   rgba(71,85,105,.15);
-      --amber-bg:  rgba(245,158,11,.12);
-      --red-bg:    rgba(239,68,68,.12);
+      --green-bg:  #e8f5ee;
+      --blue-bg:   #e4f0fb;
+      --purple-bg: #f0ebff;
+      --grey-bg:   #f3f4f6;
+      --amber-bg:  #fef3e2;
+      --red-bg:    #fde8e8;
+
+      --accent:    #0d5c63;
+      --accent-bg: #e6f2f3;
+      --energy:    #d45a3b;
 
       --radius-sm: 6px;
       --radius:    10px;
-      --radius-lg: 16px;
-      --radius-xl: 24px;
+      --radius-lg: 14px;
+      --radius-xl: 20px;
 
-      --shadow: 0 1px 3px rgba(0,0,0,.4), 0 1px 2px rgba(0,0,0,.3);
-      --shadow-md: 0 4px 16px rgba(0,0,0,.4);
+      --shadow: 0 1px 3px rgba(0,0,0,.04), 0 1px 2px rgba(0,0,0,.03);
+      --shadow-md: 0 4px 12px rgba(0,0,0,.06);
+
+      --font-display: 'Bricolage Grotesque', serif;
+      --font-body: 'DM Sans', sans-serif;
     }
 
     /* ─── Reset & base ──────────────────────────────────────────────── */
@@ -45,7 +55,7 @@
     html { font-size: 16px; scroll-behavior: smooth; }
 
     body {
-      font-family: system-ui, -apple-system, sans-serif;
+      font-family: var(--font-body);
       background: var(--bg);
       color: var(--text);
       line-height: 1.6;
@@ -57,14 +67,13 @@
     .container {
       max-width: 700px;
       margin: 0 auto;
-      padding: 1.25rem 1rem 4rem;
+      padding: 1.5rem 1rem 4rem;
     }
 
     /* ─── Hero ──────────────────────────────────────────────────────── */
     .hero {
-      background: linear-gradient(135deg, #0f172a 0%, #1a2744 40%, #1e2d52 70%, #162039 100%);
-      border-bottom: 1px solid var(--border);
-      padding: 2.5rem 1rem 2rem;
+      background: var(--accent);
+      padding: 2.5rem 1rem 2.25rem;
       position: relative;
       overflow: hidden;
     }
@@ -74,9 +83,17 @@
       position: absolute;
       inset: 0;
       background:
-        radial-gradient(ellipse 60% 50% at 20% 20%, rgba(59,130,246,.1) 0%, transparent 60%),
-        radial-gradient(ellipse 50% 60% at 80% 80%, rgba(139,92,246,.08) 0%, transparent 60%);
+        radial-gradient(ellipse 80% 60% at 10% 90%, rgba(255,255,255,.08) 0%, transparent 50%),
+        radial-gradient(ellipse 60% 50% at 90% 10%, rgba(255,255,255,.05) 0%, transparent 50%);
       pointer-events: none;
+    }
+
+    .hero::after {
+      content: '';
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      height: 1px;
+      background: rgba(0,0,0,.1);
     }
 
     .hero-inner {
@@ -87,30 +104,28 @@
 
     .hero-label {
       display: inline-block;
-      font-size: .68rem;
+      font-family: var(--font-body);
+      font-size: .65rem;
       font-weight: 700;
-      letter-spacing: .12em;
+      letter-spacing: .14em;
       text-transform: uppercase;
-      color: var(--blue);
-      background: var(--blue-bg);
-      border: 1px solid rgba(59,130,246,.25);
-      border-radius: var(--radius-sm);
-      padding: .2rem .55rem;
-      margin-bottom: .85rem;
+      color: rgba(255,255,255,.7);
+      margin-bottom: .75rem;
     }
 
     .hero-title {
-      font-size: clamp(1.75rem, 6vw, 2.6rem);
+      font-family: var(--font-display);
+      font-size: clamp(1.8rem, 6vw, 2.8rem);
       font-weight: 800;
       letter-spacing: -.02em;
-      line-height: 1.1;
-      color: var(--text);
-      margin-bottom: .4rem;
+      line-height: 1.05;
+      color: #fff;
+      margin-bottom: .35rem;
     }
 
     .hero-subtitle {
-      font-size: 1rem;
-      color: var(--text-muted);
+      font-size: .95rem;
+      color: rgba(255,255,255,.65);
       font-weight: 500;
       margin-bottom: 1.75rem;
     }
@@ -122,30 +137,32 @@
     }
 
     .countdown-chip {
-      background: rgba(255,255,255,.05);
-      border: 1px solid var(--border);
+      background: rgba(255,255,255,.12);
+      border: 1px solid rgba(255,255,255,.15);
       border-radius: var(--radius);
-      padding: .6rem 1rem;
+      padding: .55rem 1rem;
       text-align: center;
       min-width: 90px;
+      backdrop-filter: blur(8px);
     }
 
     .countdown-num {
       display: block;
+      font-family: var(--font-display);
       font-size: 1.9rem;
       font-weight: 800;
       line-height: 1;
-      color: var(--text);
+      color: #fff;
       font-variant-numeric: tabular-nums;
     }
 
     .countdown-unit {
       display: block;
-      font-size: .72rem;
+      font-size: .68rem;
       font-weight: 600;
       letter-spacing: .06em;
       text-transform: uppercase;
-      color: var(--text-muted);
+      color: rgba(255,255,255,.55);
       margin-top: .2rem;
     }
 
@@ -159,11 +176,12 @@
 
     /* ─── Section wrapper ───────────────────────────────────────────── */
     .section {
-      margin-top: 1.5rem;
+      margin-top: 1.75rem;
     }
 
     .section-title {
-      font-size: .7rem;
+      font-family: var(--font-body);
+      font-size: .68rem;
       font-weight: 700;
       letter-spacing: .1em;
       text-transform: uppercase;
@@ -184,7 +202,7 @@
 
     /* ─── Progress bars ─────────────────────────────────────────────── */
     .progress-bar-wrap {
-      background: rgba(255,255,255,.06);
+      background: var(--grey-bg);
       border-radius: 999px;
       overflow: hidden;
       height: 8px;
@@ -193,7 +211,7 @@
     .progress-bar-fill {
       height: 100%;
       border-radius: 999px;
-      background: linear-gradient(90deg, var(--blue) 0%, var(--purple) 100%);
+      background: linear-gradient(90deg, var(--accent) 0%, #1a8f72 100%);
       transition: width .5s ease;
       min-width: 2px;
     }
@@ -202,7 +220,7 @@
       background: linear-gradient(90deg, #16a34a 0%, var(--green) 100%);
     }
 
-    .progress-bar-wrap.thick { height: 12px; }
+    .progress-bar-wrap.thick { height: 10px; }
 
     .progress-label {
       display: flex;
@@ -243,18 +261,20 @@
       box-shadow: var(--shadow);
       display: flex;
       flex-direction: column;
-      gap: .2rem;
+      gap: .15rem;
     }
 
     .stat-value {
+      font-family: var(--font-display);
       font-size: 1.6rem;
       font-weight: 800;
       line-height: 1;
+      color: var(--text);
       font-variant-numeric: tabular-nums;
     }
 
     .stat-label {
-      font-size: .72rem;
+      font-size: .68rem;
       font-weight: 600;
       letter-spacing: .04em;
       color: var(--text-muted);
@@ -279,8 +299,8 @@
     }
 
     .day-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
+      background: var(--surface2);
+      border: 1.5px solid var(--border);
       border-radius: var(--radius);
       padding: .5rem .3rem;
       text-align: center;
@@ -290,22 +310,22 @@
       align-items: center;
       gap: .2rem;
       position: relative;
-      transition: border-color .15s, background .15s;
+      transition: border-color .15s, background .15s, box-shadow .15s;
       cursor: default;
     }
 
-    .day-card:hover { border-color: var(--blue); background: var(--surface2); }
+    .day-card:hover { border-color: var(--accent); background: var(--accent-bg); }
 
     .day-card.done    { border-color: var(--green); background: var(--green-bg); }
     .day-card.planned { border-color: var(--blue);  background: var(--blue-bg); }
     .day-card.missed  { border-color: var(--red);   background: var(--red-bg); }
     .day-card.bonus   { border-color: var(--purple); background: var(--purple-bg); }
-    .day-card.rest    { border-color: transparent; background: rgba(255,255,255,.02); }
+    .day-card.rest    { border-color: transparent; background: var(--grey-bg); }
     .day-card.race    { border-color: var(--amber); background: var(--amber-bg); }
-    .day-card.today   { box-shadow: 0 0 0 2px var(--blue); }
+    .day-card.today   { box-shadow: 0 0 0 2px var(--accent); }
 
     .day-name {
-      font-size: .62rem;
+      font-size: .6rem;
       font-weight: 700;
       letter-spacing: .06em;
       text-transform: uppercase;
@@ -336,7 +356,7 @@
       display: inline-flex;
       align-items: center;
       gap: .25rem;
-      font-size: .68rem;
+      font-size: .65rem;
       font-weight: 700;
       letter-spacing: .04em;
       text-transform: uppercase;
@@ -344,12 +364,12 @@
       border-radius: var(--radius-sm);
     }
 
-    .badge.green  { color: var(--green);  background: var(--green-bg);  border: 1px solid rgba(34,197,94,.3); }
-    .badge.blue   { color: var(--blue);   background: var(--blue-bg);   border: 1px solid rgba(59,130,246,.3); }
-    .badge.purple { color: var(--purple); background: var(--purple-bg); border: 1px solid rgba(139,92,246,.3); }
-    .badge.grey   { color: var(--grey);   background: var(--grey-bg);   border: 1px solid rgba(71,85,105,.3); }
-    .badge.amber  { color: var(--amber);  background: var(--amber-bg);  border: 1px solid rgba(245,158,11,.3); }
-    .badge.red    { color: var(--red);    background: var(--red-bg);    border: 1px solid rgba(239,68,68,.3); }
+    .badge.green  { color: var(--green);  background: var(--green-bg); }
+    .badge.blue   { color: var(--blue);   background: var(--blue-bg); }
+    .badge.purple { color: var(--purple); background: var(--purple-bg); }
+    .badge.grey   { color: var(--grey);   background: var(--grey-bg); }
+    .badge.amber  { color: var(--amber);  background: var(--amber-bg); }
+    .badge.red    { color: var(--red);    background: var(--red-bg); }
 
     /* ─── Week list rows ────────────────────────────────────────────── */
     .week-row {
@@ -363,9 +383,9 @@
       transition: border-color .15s, background .15s;
     }
 
-    .week-row:hover { border-color: var(--blue); background: var(--surface2); }
+    .week-row:hover { border-color: var(--accent); background: var(--surface2); }
 
-    .week-row.current-week-row { border-color: var(--blue); }
+    .week-row.current-week-row { border-color: var(--accent); }
 
     .week-row-header {
       display: flex;
@@ -381,8 +401,9 @@
     }
 
     .week-row-label {
+      font-family: var(--font-display);
       font-size: .95rem;
-      font-weight: 700;
+      font-weight: 600;
       color: var(--text);
       white-space: nowrap;
       overflow: hidden;
@@ -390,7 +411,7 @@
     }
 
     .week-row-subtitle {
-      font-size: .78rem;
+      font-size: .75rem;
       color: var(--text-muted);
       margin-top: .1rem;
     }
@@ -404,7 +425,7 @@
     }
 
     .week-km {
-      font-size: .9rem;
+      font-size: .85rem;
       font-weight: 700;
       color: var(--text-muted);
       font-variant-numeric: tabular-nums;
@@ -442,8 +463,9 @@
     }
 
     .current-week-title {
+      font-family: var(--font-display);
       font-size: 1.05rem;
-      font-weight: 700;
+      font-weight: 600;
       color: var(--text);
     }
 
@@ -463,7 +485,7 @@
 
     .error-msg {
       background: var(--red-bg);
-      border: 1px solid rgba(239,68,68,.3);
+      border: 1px solid rgba(196,43,43,.2);
       border-radius: var(--radius);
       padding: .75rem 1rem;
       color: var(--red);
@@ -496,12 +518,12 @@
 
     /* ─── Week row active / expanded states ────────────────────────── */
     .week-row.active {
-      border-left: 3px solid var(--blue);
-      padding-left: calc(1.1rem - 2px); /* 3px border replaces 1px, net +2px offset */
+      border-left: 3px solid var(--accent);
+      padding-left: calc(1.1rem - 2px);
     }
 
     .week-row.future {
-      opacity: 0.5;
+      opacity: 0.45;
     }
 
     .week-row { cursor: pointer; }
@@ -521,7 +543,7 @@
     .mini-bar-wrap {
       width: 70px;
       height: 5px;
-      background: rgba(255,255,255,.06);
+      background: var(--grey-bg);
       border-radius: 999px;
       overflow: hidden;
       flex-shrink: 0;
@@ -530,7 +552,7 @@
     .mini-bar-fill {
       height: 100%;
       border-radius: 999px;
-      background: linear-gradient(90deg, var(--blue) 0%, var(--purple) 100%);
+      background: linear-gradient(90deg, var(--accent) 0%, #1a8f72 100%);
       min-width: 2px;
     }
 
@@ -561,7 +583,7 @@
       .countdown-chip { min-width: 78px; padding: .5rem .8rem; }
       .countdown-num { font-size: 1.6rem; }
       .day-card { padding: .4rem .2rem; min-height: 64px; }
-      .day-name { font-size: .58rem; }
+      .day-name { font-size: .56rem; }
       .day-icon { font-size: 1rem; }
       .chart-height { height: 200px !important; }
     }
@@ -1207,8 +1229,8 @@
             {
               label: 'Planerat',
               data: plannedKm,
-              backgroundColor: 'rgba(59, 130, 246, 0.2)',
-              borderColor: 'rgba(59, 130, 246, 0.6)',
+              backgroundColor: 'rgba(13, 92, 99, 0.12)',
+              borderColor: 'rgba(13, 92, 99, 0.4)',
               borderWidth: 2,
               borderDash: [5, 5],
               borderRadius: 4,
@@ -1217,8 +1239,8 @@
             {
               label: 'Genomfört',
               data: actualKm,
-              backgroundColor: '#3b82f6',
-              borderColor: '#3b82f6',
+              backgroundColor: '#0d5c63',
+              borderColor: '#0d5c63',
               borderWidth: 0,
               borderRadius: 4,
               order: 1
@@ -1231,17 +1253,17 @@
           plugins: {
             legend: {
               labels: {
-                color: '#94a3b8',
+                color: '#6b7280',
                 boxWidth: 12,
                 padding: 16,
                 borderWidth: 0
               }
             },
             tooltip: {
-              backgroundColor: 'rgba(15, 23, 42, 0.9)',
-              titleColor: '#94a3b8',
-              bodyColor: '#e2e8f0',
-              borderColor: 'rgba(255, 255, 255, 0.1)',
+              backgroundColor: '#1a1a2e',
+              titleColor: '#d1d5db',
+              bodyColor: '#f3f4f6',
+              borderColor: 'rgba(0, 0, 0, 0.1)',
               borderWidth: 1,
               callbacks: {
                 label: ctx => `${ctx.dataset.label}: ${ctx.parsed.y} km`
@@ -1251,10 +1273,10 @@
           scales: {
             x: {
               grid: {
-                color: 'rgba(255, 255, 255, 0.06)'
+                color: 'rgba(0, 0, 0, 0.04)'
               },
               ticks: {
-                color: '#64748b'
+                color: '#9ca3af'
               },
               border: {
                 display: false
@@ -1262,10 +1284,10 @@
             },
             y: {
               grid: {
-                color: 'rgba(255, 255, 255, 0.06)'
+                color: 'rgba(0, 0, 0, 0.04)'
               },
               ticks: {
-                color: '#64748b'
+                color: '#9ca3af'
               },
               border: {
                 display: false
