@@ -765,7 +765,7 @@
       }
       if (planDay.type === 'tempo') {
         const match = desc.match(/(\d+)[×x](\d+)\s*min/);
-        const tempoInfo = match ? `${match[1]}×${match[2]}m` : '';
+        const tempoInfo = match ? `${match[1]}×${match[2]} min` : '';
         return `Intervall<br><span style="font-size:.5rem;color:var(--text-dim)">${tempoInfo}</span>`;
       }
       // running, long_run — show distance
