@@ -494,6 +494,46 @@
     .mt-md      { margin-top: .75rem; }
     .mt-lg      { margin-top: 1.25rem; }
 
+    /* ─── Week row active / expanded states ────────────────────────── */
+    .week-row.active {
+      border-left: 3px solid var(--blue);
+      padding-left: calc(1.1rem - 2px); /* 3px border replaces 1px, net +2px offset */
+    }
+
+    .week-row.future {
+      opacity: 0.5;
+    }
+
+    .week-row { cursor: pointer; }
+
+    .week-row-expand {
+      overflow: hidden;
+      max-height: 0;
+      transition: max-height .3s ease, padding .3s ease;
+    }
+
+    .week-row-expand.open {
+      max-height: 600px;
+      padding-top: .75rem;
+    }
+
+    /* ─── Mini progress bar ─────────────────────────────────────────── */
+    .mini-bar-wrap {
+      width: 70px;
+      height: 5px;
+      background: rgba(255,255,255,.06);
+      border-radius: 999px;
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+
+    .mini-bar-fill {
+      height: 100%;
+      border-radius: 999px;
+      background: linear-gradient(90deg, var(--blue) 0%, var(--purple) 100%);
+      min-width: 2px;
+    }
+
     /* ─── Responsive ────────────────────────────────────────────────── */
     @media (max-width: 640px) {
       .container { padding: 0 .75rem 3rem; }
@@ -942,7 +982,114 @@
     }
 
     function renderAllWeeks(plan, workouts) {
-      // TODO: Task 8
+      const el = document.getElementById('all-weeks');
+      if (!el) return;
+
+      const todayStr = new Date().toISOString().slice(0, 10);
+      const currentWeek = getWeekForDate(plan, todayStr);
+      const currentWeekId = currentWeek ? currentWeek.id : null;
+
+      // Determine which week is expanded by default (current week)
+      let expandedWeekId = currentWeekId;
+
+      // Build section header
+      let html = '<p class="section-title">ALLA VECKOR</p>';
+
+      plan.weeks.forEach((week, i) => {
+        const weekStart = new Date(week.start_date);
+        weekStart.setHours(0, 0, 0, 0);
+
+        const weekEndDate = new Date(weekStart);
+        weekEndDate.setDate(weekStart.getDate() + 6);
+        weekEndDate.setHours(23, 59, 59, 999);
+
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        const isCurrent = (week.id === currentWeekId);
+        const isPast    = !isCurrent && weekEndDate < today;
+        const isFuture  = !isCurrent && !isPast;
+
+        // Counts
+        const plannedSessions = countPlannedSessions(week);
+        const completedPlanned = countCompletedPlanned(workouts, week.id);
+        const bonusForWeek = getBonusWorkoutsForWeek(workouts, week.id, week.start_date).length;
+
+        // Right-side text
+        let rightText = '';
+        let pct = 0;
+        if (isFuture) {
+          rightText = `<span class="week-km">${week.total_km} km</span>`;
+        } else {
+          // current or past
+          let countText = `${completedPlanned}/${plannedSessions}`;
+          if (bonusForWeek > 0) countText += ` + ${bonusForWeek} extra`;
+          rightText = `<span class="week-km">${countText}</span>`;
+          pct = plannedSessions > 0 ? Math.min(Math.round(completedPlanned / plannedSessions * 100), 100) : 0;
+        }
+
+        // Mini progress bar (only for current/past)
+        const miniBar = (!isFuture) ? `
+          <div class="mini-bar-wrap">
+            <div class="mini-bar-fill" style="width:${pct}%"></div>
+          </div>` : '';
+
+        // Row state classes
+        const rowStateClass = isCurrent ? 'active' : (isFuture ? 'future' : '');
+
+        const isExpanded = (week.id === expandedWeekId);
+
+        html += `
+          <div class="week-row ${rowStateClass}" data-week-id="${week.id}">
+            <div class="week-row-header">
+              <div class="week-row-meta">
+                <div class="week-row-label">${week.label}</div>
+                <div class="week-row-subtitle">${week.subtitle || week.phase}</div>
+              </div>
+              <div class="week-row-right">
+                ${rightText}
+                ${miniBar}
+              </div>
+            </div>
+            <div class="week-row-expand${isExpanded ? ' open' : ''}" id="week-expand-${week.id}"></div>
+          </div>`;
+      });
+
+      el.innerHTML = html;
+
+      // Render the default expanded week's grid
+      if (expandedWeekId) {
+        const defaultWeek = plan.weeks.find(w => w.id === expandedWeekId);
+        if (defaultWeek) {
+          const defaultContainer = document.getElementById(`week-expand-${expandedWeekId}`);
+          if (defaultContainer) {
+            renderDayGrid(defaultWeek, workouts, defaultContainer);
+          }
+        }
+      }
+
+      // Attach click handlers
+      el.querySelectorAll('.week-row').forEach(row => {
+        row.addEventListener('click', () => {
+          const clickedId = row.dataset.weekId;
+          const clickedExpandEl = document.getElementById(`week-expand-${clickedId}`);
+          const isAlreadyOpen = clickedExpandEl.classList.contains('open');
+
+          // Collapse all expanded rows
+          el.querySelectorAll('.week-row-expand.open').forEach(exp => {
+            exp.classList.remove('open');
+          });
+
+          if (!isAlreadyOpen) {
+            // Expand the clicked row, render its grid if not yet rendered
+            const weekObj = plan.weeks.find(w => w.id === clickedId);
+            if (weekObj && clickedExpandEl.children.length === 0) {
+              renderDayGrid(weekObj, workouts, clickedExpandEl);
+            }
+            clickedExpandEl.classList.add('open');
+          }
+        });
+      });
     }
 
     function renderChart(plan, workouts) {
