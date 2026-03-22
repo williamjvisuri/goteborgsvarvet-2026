@@ -3,3 +3,5 @@
 traningsplan_goteborgsvarvet.pdf
 docs/
 .garmin-session/
+.venv/
+.env
