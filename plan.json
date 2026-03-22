@@ -1,0 +1,497 @@
+{
+  "goal": "Jogga hela vägen utan gångpauser",
+  "race": {
+    "name": "Göteborgsvarvet",
+    "date": "2026-05-23",
+    "distance_km": 21.1
+  },
+  "weeks": [
+    {
+      "id": "intro",
+      "label": "Introvecka",
+      "subtitle": "Kom igång",
+      "start_date": "2026-03-19",
+      "phase": "Basuppbyggnad",
+      "total_km": 7,
+      "days": {
+        "mon": null,
+        "tue": null,
+        "wed": null,
+        "thu": {
+          "type": "running",
+          "description": "Löpning: 20 min lätt",
+          "distance_km": 3,
+          "duration_min": 20,
+          "rpe": "3-4",
+          "note": "Ditt första pass!"
+        },
+        "fri": { "type": "rest" },
+        "sat": { "type": "rest" },
+        "sun": {
+          "type": "long_run",
+          "description": "Långpass: 4 km",
+          "distance_km": 4,
+          "rpe": "3",
+          "note": "Gå om det behövs"
+        }
+      }
+    },
+    {
+      "id": "v1",
+      "label": "Vecka 1",
+      "subtitle": "Basuppbyggnad",
+      "start_date": "2026-03-24",
+      "phase": "Basuppbyggnad",
+      "total_km": 12,
+      "days": {
+        "mon": { "type": "rest" },
+        "tue": { "type": "rest" },
+        "wed": {
+          "type": "running",
+          "description": "Löpning: 25 min lätt",
+          "distance_km": 3.5,
+          "duration_min": 25,
+          "rpe": "3-4"
+        },
+        "thu": {
+          "type": "gym",
+          "description": "Gym: Helkropp (samlat program)",
+          "duration_min": 45,
+          "exercises": [
+            { "name": "Marklyft", "sets": 3, "reps": "6-8", "note": "Teknik framför vikt. Rak rygg." },
+            { "name": "Knäböj", "sets": 3, "reps": "8-10", "note": "Parallellt djup. Lätt vikt." },
+            { "name": "Stående press", "sets": 3, "reps": "8-10", "note": "Överhead, stabil bål." },
+            { "name": "Rodd", "sets": 3, "reps": "10-12", "note": "Dra mot nedre bröstkorgen." },
+            { "name": "Vadpress", "sets": 3, "reps": "15-20", "note": "Full ROM. Pausa i topp och botten." }
+          ]
+        },
+        "fri": { "type": "rest" },
+        "sat": {
+          "type": "running",
+          "description": "Löpning: 25 min lätt",
+          "distance_km": 3.5,
+          "duration_min": 25,
+          "rpe": "3-4"
+        },
+        "sun": {
+          "type": "long_run",
+          "description": "Långpass: 5.5 km",
+          "distance_km": 5.5,
+          "rpe": "3-4"
+        }
+      }
+    },
+    {
+      "id": "v2",
+      "label": "Vecka 2",
+      "subtitle": "Basuppbyggnad",
+      "start_date": "2026-03-31",
+      "phase": "Basuppbyggnad",
+      "total_km": 14,
+      "days": {
+        "mon": { "type": "rest" },
+        "tue": { "type": "rest" },
+        "wed": {
+          "type": "running",
+          "description": "Löpning: 30 min lätt",
+          "distance_km": 4,
+          "duration_min": 30,
+          "rpe": "4"
+        },
+        "thu": {
+          "type": "gym",
+          "description": "Gym: Helkropp (samlat program)",
+          "duration_min": 45,
+          "exercises": [
+            { "name": "Marklyft", "sets": 3, "reps": "6-8", "note": "Teknik framför vikt. Rak rygg." },
+            { "name": "Knäböj", "sets": 3, "reps": "8-10", "note": "Parallellt djup. Lätt vikt." },
+            { "name": "Stående press", "sets": 3, "reps": "8-10", "note": "Överhead, stabil bål." },
+            { "name": "Rodd", "sets": 3, "reps": "10-12", "note": "Dra mot nedre bröstkorgen." },
+            { "name": "Vadpress", "sets": 3, "reps": "15-20", "note": "Full ROM. Pausa i topp och botten." }
+          ]
+        },
+        "fri": { "type": "rest" },
+        "sat": {
+          "type": "running",
+          "description": "Löpning: 25 min lätt",
+          "distance_km": 4,
+          "duration_min": 25,
+          "rpe": "4"
+        },
+        "sun": {
+          "type": "long_run",
+          "description": "Långpass: 6 km",
+          "distance_km": 6,
+          "rpe": "3-4"
+        }
+      }
+    },
+    {
+      "id": "v3",
+      "label": "Vecka 3",
+      "subtitle": "Basuppbyggnad + Gym split",
+      "start_date": "2026-04-07",
+      "phase": "Basuppbyggnad",
+      "total_km": 16,
+      "days": {
+        "mon": {
+          "type": "gym",
+          "description": "Gym A: Marklyft, press, face pulls, vadpress",
+          "duration_min": 30,
+          "exercises": [
+            { "name": "Marklyft", "sets": 3, "reps": "6-8", "note": "Rak rygg, tryck golvet ifrån dig." },
+            { "name": "Stående press", "sets": 3, "reps": "8-10", "note": "Överhead, stabil bål." },
+            { "name": "Face pulls", "sets": 3, "reps": "15-20", "note": "Lätt vikt." },
+            { "name": "Vadpress", "sets": 3, "reps": "15-20", "note": "Full ROM." }
+          ]
+        },
+        "tue": { "type": "rest" },
+        "wed": {
+          "type": "running",
+          "description": "Löpning: 30 min lätt",
+          "distance_km": 4.5,
+          "duration_min": 30,
+          "rpe": "4"
+        },
+        "thu": {
+          "type": "gym",
+          "description": "Gym B: Knäböj, rodd, vadpress, maghjul",
+          "duration_min": 30,
+          "exercises": [
+            { "name": "Knäböj", "sets": 3, "reps": "8-10", "note": "Teknik framför vikt. Parallellt djup." },
+            { "name": "Rodd", "sets": 3, "reps": "10-12", "note": "Dra mot nedre bröstkorgen." },
+            { "name": "Vadpress", "sets": 3, "reps": "15-20", "note": "Full ROM." },
+            { "name": "Maghjul", "sets": 3, "reps": "8-12", "note": "Kontrollerad ut- och inrullning." }
+          ]
+        },
+        "fri": { "type": "rest" },
+        "sat": {
+          "type": "running",
+          "description": "Löpning: 30 min lätt",
+          "distance_km": 4.5,
+          "duration_min": 30,
+          "rpe": "4"
+        },
+        "sun": {
+          "type": "long_run",
+          "description": "Långpass: 7 km",
+          "distance_km": 7,
+          "rpe": "3-4"
+        }
+      }
+    },
+    {
+      "id": "v4",
+      "label": "Vecka 4",
+      "subtitle": "Avlastning (−25%)",
+      "start_date": "2026-04-14",
+      "phase": "Avlastning",
+      "total_km": 12,
+      "days": {
+        "mon": {
+          "type": "gym",
+          "description": "Gym A: Lättare vikter (−30–40%)",
+          "duration_min": 25,
+          "exercises": [
+            { "name": "Marklyft", "sets": 3, "reps": "6-8", "note": "Lättare vikter, −30–40%." },
+            { "name": "Stående press", "sets": 3, "reps": "8-10", "note": "Lättare vikter." },
+            { "name": "Face pulls", "sets": 3, "reps": "15-20", "note": "Lätt vikt." },
+            { "name": "Vadpress", "sets": 3, "reps": "15-20", "note": "Full ROM." }
+          ]
+        },
+        "tue": { "type": "rest" },
+        "wed": {
+          "type": "running",
+          "description": "Löpning: 20 min lätt",
+          "distance_km": 3,
+          "duration_min": 20,
+          "rpe": "3"
+        },
+        "thu": {
+          "type": "gym",
+          "description": "Gym B: Lättare vikter (−30–40%)",
+          "duration_min": 25,
+          "exercises": [
+            { "name": "Knäböj", "sets": 3, "reps": "8-10", "note": "Lättare vikter, −30–40%." },
+            { "name": "Rodd", "sets": 3, "reps": "10-12", "note": "Lättare vikter." },
+            { "name": "Vadpress", "sets": 3, "reps": "15-20", "note": "Full ROM." },
+            { "name": "Maghjul", "sets": 3, "reps": "8-12", "note": "Kontrollerat." }
+          ]
+        },
+        "fri": { "type": "rest" },
+        "sat": {
+          "type": "running",
+          "description": "Löpning: 20 min lätt",
+          "distance_km": 3,
+          "duration_min": 20,
+          "rpe": "3"
+        },
+        "sun": {
+          "type": "long_run",
+          "description": "Långpass: 6 km",
+          "distance_km": 6,
+          "rpe": "3"
+        }
+      }
+    },
+    {
+      "id": "v5",
+      "label": "Vecka 5",
+      "subtitle": "Toppfas + tempo",
+      "start_date": "2026-04-21",
+      "phase": "Toppfas",
+      "total_km": 19,
+      "days": {
+        "mon": {
+          "type": "gym",
+          "description": "Gym A: Marklyft, press, rev. flyes, vadpress",
+          "duration_min": 30,
+          "exercises": [
+            { "name": "Marklyft", "sets": 3, "reps": "6-8", "note": "Rak rygg." },
+            { "name": "Stående press", "sets": 3, "reps": "8-10", "note": "Stabil bål." },
+            { "name": "Reverse flyes", "sets": 3, "reps": "15-20", "note": "Lätt vikt." },
+            { "name": "Vadpress", "sets": 3, "reps": "15-20", "note": "Full ROM." }
+          ]
+        },
+        "tue": { "type": "rest" },
+        "wed": {
+          "type": "tempo",
+          "description": "Löpning: 30 min med 4×2 min tempo, 1 min gång mellan",
+          "distance_km": 4.5,
+          "duration_min": 30,
+          "rpe": "5-6"
+        },
+        "thu": {
+          "type": "gym",
+          "description": "Gym B: Knäböj, rodd, vadpress, maghjul",
+          "duration_min": 30,
+          "exercises": [
+            { "name": "Knäböj", "sets": 3, "reps": "8-10", "note": "Parallellt djup." },
+            { "name": "Rodd", "sets": 3, "reps": "10-12", "note": "Kontrollerat." },
+            { "name": "Vadpress", "sets": 3, "reps": "15-20", "note": "Full ROM." },
+            { "name": "Maghjul", "sets": 3, "reps": "8-12", "note": "Spänn bålen." }
+          ]
+        },
+        "fri": { "type": "rest" },
+        "sat": {
+          "type": "running",
+          "description": "Löpning: 30 min lätt",
+          "distance_km": 4.5,
+          "duration_min": 30,
+          "rpe": "4"
+        },
+        "sun": {
+          "type": "long_run",
+          "description": "Långpass: 10 km",
+          "distance_km": 10,
+          "rpe": "4"
+        }
+      }
+    },
+    {
+      "id": "v6",
+      "label": "Vecka 6",
+      "subtitle": "Toppfas",
+      "start_date": "2026-04-28",
+      "phase": "Toppfas",
+      "total_km": 22,
+      "days": {
+        "mon": {
+          "type": "gym",
+          "description": "Gym A: Marklyft, press, face pulls, vadpress",
+          "duration_min": 30,
+          "exercises": [
+            { "name": "Marklyft", "sets": 3, "reps": "6-8", "note": "Rak rygg." },
+            { "name": "Stående press", "sets": 3, "reps": "8-10", "note": "Stabil bål." },
+            { "name": "Face pulls", "sets": 3, "reps": "15-20", "note": "Lätt vikt." },
+            { "name": "Vadpress", "sets": 3, "reps": "15-20", "note": "Full ROM." }
+          ]
+        },
+        "tue": { "type": "rest" },
+        "wed": {
+          "type": "tempo",
+          "description": "Löpning: 35 min med 5×2 min tempo, 1 min gång mellan",
+          "distance_km": 5.5,
+          "duration_min": 35,
+          "rpe": "5-6"
+        },
+        "thu": {
+          "type": "gym",
+          "description": "Gym B: Knäböj, rodd, vadpress, maghjul",
+          "duration_min": 30,
+          "exercises": [
+            { "name": "Knäböj", "sets": 3, "reps": "8-10", "note": "Parallellt djup." },
+            { "name": "Rodd", "sets": 3, "reps": "10-12", "note": "Kontrollerat." },
+            { "name": "Vadpress", "sets": 3, "reps": "15-20", "note": "Full ROM." },
+            { "name": "Maghjul", "sets": 3, "reps": "8-12", "note": "Spänn bålen." }
+          ]
+        },
+        "fri": { "type": "rest" },
+        "sat": {
+          "type": "running",
+          "description": "Löpning: 30 min lätt",
+          "distance_km": 4.5,
+          "duration_min": 30,
+          "rpe": "4"
+        },
+        "sun": {
+          "type": "long_run",
+          "description": "Långpass: 12 km",
+          "distance_km": 12,
+          "rpe": "4"
+        }
+      }
+    },
+    {
+      "id": "v7",
+      "label": "Vecka 7",
+      "subtitle": "Toppfas",
+      "start_date": "2026-05-05",
+      "phase": "Toppfas",
+      "total_km": 25,
+      "days": {
+        "mon": {
+          "type": "gym",
+          "description": "Gym A: Marklyft, press, rev. flyes, vadpress",
+          "duration_min": 30,
+          "exercises": [
+            { "name": "Marklyft", "sets": 3, "reps": "6-8", "note": "Rak rygg." },
+            { "name": "Stående press", "sets": 3, "reps": "8-10", "note": "Stabil bål." },
+            { "name": "Reverse flyes", "sets": 3, "reps": "15-20", "note": "Lätt vikt." },
+            { "name": "Vadpress", "sets": 3, "reps": "15-20", "note": "Full ROM." }
+          ]
+        },
+        "tue": { "type": "rest" },
+        "wed": {
+          "type": "tempo",
+          "description": "Löpning: 35 min med 4×3 min tempo, 90 sek gång mellan",
+          "distance_km": 6,
+          "duration_min": 35,
+          "rpe": "5-6"
+        },
+        "thu": {
+          "type": "gym",
+          "description": "Gym B: Knäböj, rodd, vadpress, maghjul",
+          "duration_min": 30,
+          "exercises": [
+            { "name": "Knäböj", "sets": 3, "reps": "8-10", "note": "Parallellt djup." },
+            { "name": "Rodd", "sets": 3, "reps": "10-12", "note": "Kontrollerat." },
+            { "name": "Vadpress", "sets": 3, "reps": "15-20", "note": "Full ROM." },
+            { "name": "Maghjul", "sets": 3, "reps": "8-12", "note": "Spänn bålen." }
+          ]
+        },
+        "fri": { "type": "rest" },
+        "sat": {
+          "type": "running",
+          "description": "Löpning: 35 min lätt",
+          "distance_km": 5,
+          "duration_min": 35,
+          "rpe": "4"
+        },
+        "sun": {
+          "type": "long_run",
+          "description": "Långpass: 14 km",
+          "distance_km": 14,
+          "rpe": "4"
+        }
+      }
+    },
+    {
+      "id": "v8",
+      "label": "Vecka 8",
+      "subtitle": "Längsta passet",
+      "start_date": "2026-05-12",
+      "phase": "Toppfas",
+      "total_km": 27,
+      "days": {
+        "mon": {
+          "type": "gym",
+          "description": "Gym A: Lättare vikter",
+          "duration_min": 25,
+          "exercises": [
+            { "name": "Marklyft", "sets": 3, "reps": "6-8", "note": "Lättare vikter." },
+            { "name": "Stående press", "sets": 3, "reps": "8-10", "note": "Lättare vikter." },
+            { "name": "Face pulls", "sets": 3, "reps": "15-20", "note": "Lätt vikt." },
+            { "name": "Vadpress", "sets": 3, "reps": "15-20", "note": "Full ROM." }
+          ]
+        },
+        "tue": { "type": "rest" },
+        "wed": {
+          "type": "tempo",
+          "description": "Löpning: 30 min med 4×2 min tempo, 1 min gång mellan",
+          "distance_km": 5,
+          "duration_min": 30,
+          "rpe": "5"
+        },
+        "thu": {
+          "type": "gym",
+          "description": "Gym B: Lättare vikter",
+          "duration_min": 25,
+          "exercises": [
+            { "name": "Knäböj", "sets": 3, "reps": "8-10", "note": "Lättare vikter." },
+            { "name": "Rodd", "sets": 3, "reps": "10-12", "note": "Lättare vikter." },
+            { "name": "Vadpress", "sets": 3, "reps": "15-20", "note": "Full ROM." },
+            { "name": "Maghjul", "sets": 3, "reps": "8-12", "note": "Kontrollerat." }
+          ]
+        },
+        "fri": { "type": "rest" },
+        "sat": {
+          "type": "running",
+          "description": "Löpning: 35 min lätt",
+          "distance_km": 5,
+          "duration_min": 35,
+          "rpe": "4"
+        },
+        "sun": {
+          "type": "long_run",
+          "description": "Långpass: 17 km",
+          "distance_km": 17,
+          "rpe": "4",
+          "note": "Ditt längsta pass!"
+        }
+      }
+    },
+    {
+      "id": "v9",
+      "label": "Vecka 9",
+      "subtitle": "Taper + Loppdag",
+      "start_date": "2026-05-19",
+      "phase": "Taper",
+      "total_km": 25,
+      "days": {
+        "mon": {
+          "type": "gym",
+          "description": "Gym: Lätt helkropp",
+          "duration_min": 20,
+          "exercises": [
+            { "name": "Marklyft", "sets": 2, "reps": "6-8", "note": "Lätt, låg intensitet." },
+            { "name": "Knäböj", "sets": 2, "reps": "8-10", "note": "Lätt, låg intensitet." },
+            { "name": "Stående press", "sets": 2, "reps": "8-10", "note": "Lätt." },
+            { "name": "Rodd", "sets": 2, "reps": "10-12", "note": "Lätt." },
+            { "name": "Vadpress", "sets": 2, "reps": "15-20", "note": "Full ROM." }
+          ]
+        },
+        "tue": { "type": "rest" },
+        "wed": {
+          "type": "running",
+          "description": "Löpning: 20 min lätt med 4×30 sek ökningar",
+          "distance_km": 3.9,
+          "duration_min": 20,
+          "rpe": "3-4"
+        },
+        "thu": { "type": "rest" },
+        "fri": {
+          "type": "rest",
+          "note": "Total vila. Packa kläder kvällen."
+        },
+        "sat": {
+          "type": "race",
+          "description": "GÖTEBORGSVARVET!",
+          "distance_km": 21.1,
+          "note": "Njut av loppet!"
+        },
+        "sun": null
+      }
+    }
+  ]
+}
