@@ -602,10 +602,7 @@
   <!-- ─── Main content ──────────────────────────────────────────────── -->
   <main class="container">
 
-    <!-- Progress overview -->
-    <section class="section" id="progress">
-      <p class="loading">Laddar...</p>
-    </section>
+    <!-- Progress merged into stats -->
 
     <!-- Stats -->
     <section class="section" id="stats"></section>
@@ -714,6 +711,19 @@
       return d.toLocaleDateString('sv-SE', { day: 'numeric', month: 'short' });
     }
 
+    /** Format bonus workout types, e.g. "1 extra löpning" or "2 extra (1 löpning, 1 gym)" */
+    function formatBonusText(types) {
+      const typeLabels = { running: 'löpning', long_run: 'löpning', tempo: 'tempo', gym: 'gym' };
+      const counts = {};
+      types.forEach(t => {
+        const label = typeLabels[t] || t;
+        counts[label] = (counts[label] || 0) + 1;
+      });
+      const parts = Object.entries(counts).map(([label, n]) => n > 1 ? `${n} ${label}` : label);
+      if (parts.length === 1) return `${types.length} extra ${parts[0]}`;
+      return `${types.length} extra (${parts.join(', ')})`;
+    }
+
     /** Short label for a planned day card */
     function shortLabel(planDay) {
       if (!planDay || planDay.type === 'rest') return '';
@@ -812,23 +822,12 @@
 
     // ─── Render stubs ─────────────────────────────────────────────────
 
-    function renderProgress(plan, workouts) {
-      const { elapsed: Y, completed: X, pct: Z } = calcAdherence(plan, workouts);
-
-      const el = document.getElementById('progress');
-      el.innerHTML = `
-        <p class="section-title">ÖVERGRIPANDE FRAMSTEG</p>
-        <div class="flex-between" style="margin-bottom:.5rem;">
-          <span class="text-sm text-muted">Total framsteg</span>
-          <span class="text-sm font-bold">${X} av ${Y} pass klara (${Z}%)</span>
-        </div>
-        <div class="progress-bar-wrap thick">
-          <div class="progress-bar-fill" style="width:${Math.min(Z, 100)}%"></div>
-        </div>`;
+    function renderProgress() {
+      // Removed — merged into renderStats
     }
 
     function renderStats(plan, workouts) {
-      const { pct: adherencePct } = calcAdherence(plan, workouts);
+      const { elapsed: Y, completed: X, pct: adherencePct } = calcAdherence(plan, workouts);
 
       // Sum of all distance_km (all workouts, including bonus)
       const totalKm = workouts.reduce((sum, w) => sum + (w.distance_km || 0), 0);
@@ -860,6 +859,15 @@
             <span class="stat-value">${adherencePct}%</span>
             <span class="stat-label">Följsamhet</span>
           </div>
+        </div>
+        <div style="margin-top:.75rem;">
+          <div class="flex-between" style="margin-bottom:.4rem;">
+            <span class="text-sm text-muted">Framsteg</span>
+            <span class="text-sm font-bold">${X} av ${Y} pass</span>
+          </div>
+          <div class="progress-bar-wrap thick">
+            <div class="progress-bar-fill" style="width:${Math.min(adherencePct, 100)}%"></div>
+          </div>
         </div>`;
     }
 
@@ -889,6 +897,7 @@
       let completedCount = 0;
       let plannedCount   = 0;
       let bonusCount     = 0;
+      const bonusTypes   = [];
 
       let html = '<div class="day-grid">';
 
@@ -919,6 +928,7 @@
           if (bonusWorkout) {
             // Bonus workout on a day with no plan entry
             bonusCount++;
+            bonusTypes.push(bonusWorkout.type);
             const km = bonusWorkout.distance_km;
             const kmDisplay = Number.isInteger(km) ? km : km.toFixed(1);
             stateClass = 'bonus';
@@ -934,6 +944,7 @@
           if (bonusWorkout) {
             // Bonus session on a rest day
             bonusCount++;
+            bonusTypes.push(bonusWorkout.type);
             const km = bonusWorkout.distance_km;
             const kmDisplay = Number.isInteger(km) ? km : km.toFixed(1);
             stateClass = 'bonus';
@@ -1003,7 +1014,7 @@
       html += '</div>';
       container.innerHTML = html;
 
-      return { completed: completedCount, planned: plannedCount, bonus: bonusCount };
+      return { completed: completedCount, planned: plannedCount, bonus: bonusCount, bonusTypes };
     }
 
     function renderCurrentWeek(plan, workouts) {
@@ -1043,7 +1054,7 @@
       // Count line
       const countEl = document.getElementById('current-week-count');
       let countText = `${counts.completed}/${counts.planned} pass`;
-      if (counts.bonus > 0) countText += ` + ${counts.bonus} extra`;
+      if (counts.bonus > 0) countText += ` + ${formatBonusText(counts.bonusTypes)}`;
       countEl.textContent = countText;
     }
 
@@ -1059,9 +1070,12 @@
       let expandedWeekId = currentWeekId;
 
       // Build section header
-      let html = '<p class="section-title">ALLA VECKOR</p>';
+      let html = '<p class="section-title">ÖVRIGA VECKOR</p>';
 
       plan.weeks.forEach((week, i) => {
+        // Skip the current week — it's already shown above
+        if (week.id === currentWeekId) return;
+
         const weekStart = new Date(week.start_date);
         weekStart.setHours(0, 0, 0, 0);
 
@@ -1072,14 +1086,15 @@
         const today = new Date();
         today.setHours(0, 0, 0, 0);
 
-        const isCurrent = (week.id === currentWeekId);
-        const isPast    = !isCurrent && weekEndDate < today;
-        const isFuture  = !isCurrent && !isPast;
+        const isCurrent = false;
+        const isPast    = weekEndDate < today;
+        const isFuture  = !isPast;
 
         // Counts
         const plannedSessions = countPlannedSessions(week);
         const completedPlanned = countCompletedPlanned(workouts, week.id);
-        const bonusForWeek = getBonusWorkoutsForWeek(workouts, week.id, week.start_date).length;
+        const bonusWorkouts = getBonusWorkoutsForWeek(workouts, week.id, week.start_date);
+        const bonusForWeek = bonusWorkouts.length;
 
         // Right-side text
         let rightText = '';
@@ -1089,7 +1104,7 @@
         } else {
           // current or past
           let countText = `${completedPlanned}/${plannedSessions}`;
-          if (bonusForWeek > 0) countText += ` + ${bonusForWeek} extra`;
+          if (bonusForWeek > 0) countText += ` + ${formatBonusText(bonusWorkouts.map(w => w.type))}`;
           rightText = `<span class="week-km">${countText}</span>`;
           pct = plannedSessions > 0 ? Math.min(Math.round(completedPlanned / plannedSessions * 100), 100) : 0;
         }
