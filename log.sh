@@ -23,9 +23,18 @@ if ! command -v jq &>/dev/null; then
   exit 1
 fi
 
+if ! command -v bc &>/dev/null; then
+  echo "Fel: 'bc' är inte installerat. Installera med: sudo apt install bc" >&2
+  exit 1
+fi
+
 if [[ ! -f "$WORKOUTS_FILE" ]]; then
   echo "Fel: $WORKOUTS_FILE saknas." >&2
   exit 1
+fi
+
+if [[ ! -s "$WORKOUTS_FILE" ]] || ! jq empty "$WORKOUTS_FILE" 2>/dev/null; then
+  echo "[]" > "$WORKOUTS_FILE"
 fi
 
 if [[ ! -f "$PLAN_FILE" ]]; then
