@@ -243,7 +243,24 @@ def git_push(new_entries):
     return True
 
 
+def load_dotenv():
+    """Läser .env-fil från samma katalog som skriptet, om den finns."""
+    env_file = SCRIPT_DIR / ".env"
+    if env_file.exists():
+        with open(env_file) as f:
+            for line in f:
+                line = line.strip()
+                if not line or line.startswith("#") or "=" not in line:
+                    continue
+                key, _, value = line.partition("=")
+                key = key.strip()
+                value = value.strip().strip("'\"")
+                if key and key not in os.environ:
+                    os.environ[key] = value
+
+
 def main():
+    load_dotenv()
     parser = argparse.ArgumentParser(
         description="Synkronisera löppass från Garmin Connect till workouts.json"
     )
