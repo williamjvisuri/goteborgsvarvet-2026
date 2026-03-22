@@ -57,7 +57,7 @@
     .container {
       max-width: 700px;
       margin: 0 auto;
-      padding: 0 1rem 4rem;
+      padding: 1.25rem 1rem 4rem;
     }
 
     /* ─── Hero ──────────────────────────────────────────────────────── */
@@ -534,6 +534,24 @@
       min-width: 2px;
     }
 
+    /* ─── Footer ────────────────────────────────────────────────────── */
+    .page-footer {
+      margin-top: 2.5rem;
+      padding-top: 1.25rem;
+      border-top: 1px solid var(--border);
+      text-align: center;
+    }
+
+    .page-footer p {
+      font-size: .78rem;
+      color: var(--text-dim);
+      line-height: 1.7;
+    }
+
+    .page-footer p + p {
+      margin-top: .1rem;
+    }
+
     /* ─── Responsive ────────────────────────────────────────────────── */
     @media (max-width: 640px) {
       .container { padding: 0 .75rem 3rem; }
@@ -542,6 +560,10 @@
       .hero { padding: 2rem .75rem 1.75rem; }
       .countdown-chip { min-width: 78px; padding: .5rem .8rem; }
       .countdown-num { font-size: 1.6rem; }
+      .day-card { padding: .4rem .2rem; min-height: 64px; }
+      .day-name { font-size: .58rem; }
+      .day-icon { font-size: 1rem; }
+      .chart-height { height: 200px; }
     }
 
     @media (max-width: 380px) {
@@ -550,7 +572,15 @@
       .hero-countdown { gap: .5rem; }
       .countdown-chip { min-width: 68px; padding: .45rem .6rem; }
       .countdown-num { font-size: 1.4rem; }
+      .day-card { min-height: 58px; }
+      .day-name-short { display: inline; }
+      .day-name-full  { display: none; }
+      .chart-height { height: 180px; }
     }
+
+    /* Default: show full, hide short */
+    .day-name-short { display: none; }
+    .day-name-full  { display: inline; }
   </style>
 </head>
 <body>
@@ -586,6 +616,9 @@
 
     <!-- All weeks -->
     <section class="section" id="all-weeks"></section>
+
+    <!-- Footer -->
+    <footer class="page-footer" id="page-footer"></footer>
 
   </main>
 
@@ -759,9 +792,11 @@
 
       const el = document.getElementById('progress');
       el.innerHTML = `
-        <p class="text-sm text-muted" style="margin-bottom:.6rem;">
-          Total framsteg: ${X} av ${Y} pass klara (${Z}%)
-        </p>
+        <p class="section-title">ÖVERGRIPANDE FRAMSTEG</p>
+        <div class="flex-between" style="margin-bottom:.5rem;">
+          <span class="text-sm text-muted">Total framsteg</span>
+          <span class="text-sm font-bold">${X} av ${Y} pass klara (${Z}%)</span>
+        </div>
         <div class="progress-bar-wrap thick">
           <div class="progress-bar-fill" style="width:${Math.min(Z, 100)}%"></div>
         </div>`;
@@ -804,6 +839,7 @@
 
       const el = document.getElementById('stats');
       el.innerHTML = `
+        <p class="section-title">STATISTIK</p>
         <div class="stats-grid">
           <div class="stat-card">
             <span class="stat-value">${totalKmDisplay}</span>
@@ -832,6 +868,7 @@
     function renderDayGrid(week, workouts, container) {
       const DAY_KEYS   = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
       const DAY_LABELS = ['MÅN', 'TIS', 'ONS', 'TOR', 'FRE', 'LÖR', 'SÖN'];
+      const DAY_ABBREV = ['M',   'T',   'O',   'T',   'F',   'L',   'S'];
 
       const todayStr = new Date().toISOString().slice(0, 10);
 
@@ -927,7 +964,7 @@
 
         html += `
           <div class="day-card ${stateClass}">
-            <span class="day-name">${DAY_LABELS[idx]}</span>
+            <span class="day-name"><span class="day-name-full">${DAY_LABELS[idx]}</span><span class="day-name-short">${DAY_ABBREV[idx]}</span></span>
             ${iconHtml}
             ${labelHtml}
             ${badge}
@@ -1119,8 +1156,10 @@
 
       el.innerHTML = `
         <p class="section-title">KILOMETERVOLYM</p>
-        <div style="position:relative; height:250px;">
-          <canvas id="volumeChart"></canvas>
+        <div class="chart-wrap">
+          <div class="chart-height" style="position:relative; height:250px;">
+            <canvas id="volumeChart"></canvas>
+          </div>
         </div>
       `;
 
@@ -1202,6 +1241,28 @@
       });
     }
 
+    // ─── Render: Footer ───────────────────────────────────────────────
+
+    function renderFooter(workouts) {
+      const el = document.getElementById('page-footer');
+      if (!el) return;
+
+      // Find the date of the most recent workout
+      let lastDateStr = null;
+      if (workouts.length > 0) {
+        const sorted = [...workouts].sort((a, b) => a.date < b.date ? 1 : -1);
+        lastDateStr = sorted[0].date;
+      }
+
+      const lastUpdated = lastDateStr
+        ? new Date(lastDateStr).toLocaleDateString('sv-SE', { year: 'numeric', month: 'long', day: 'numeric' })
+        : '–';
+
+      el.innerHTML = `
+        <p>Träningsplan för Göteborgsvarvet 2026</p>
+        <p>Senast uppdaterad: ${lastUpdated}</p>`;
+    }
+
     // ─── Main render orchestrator ─────────────────────────────────────
 
     function render(plan, workouts) {
@@ -1211,6 +1272,7 @@
       renderCurrentWeek(plan, workouts);
       renderAllWeeks(plan, workouts);
       renderChart(plan, workouts);
+      renderFooter(workouts);
     }
 
     // ─── Bootstrap: fetch data ────────────────────────────────────────
