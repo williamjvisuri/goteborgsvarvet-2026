@@ -689,11 +689,99 @@
     // ─── Render stubs ─────────────────────────────────────────────────
 
     function renderProgress(plan, workouts) {
-      // TODO: Task 5
+      // Day keys in order (weeks start on Monday in plan.json)
+      const DAY_KEYS = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
+
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      // Y = count all non-null, non-rest planned sessions where the day's date <= today
+      let Y = 0;
+      for (const week of plan.weeks) {
+        const weekStart = new Date(week.start_date);
+        weekStart.setHours(0, 0, 0, 0);
+        // Skip weeks that haven't started yet
+        if (weekStart > today) continue;
+        DAY_KEYS.forEach((key, idx) => {
+          const day = week.days[key];
+          if (!day || day.type === 'rest') return;
+          const dayDate = new Date(weekStart);
+          dayDate.setDate(weekStart.getDate() + idx);
+          dayDate.setHours(0, 0, 0, 0);
+          if (dayDate <= today) Y++;
+        });
+      }
+
+      // X = count of workouts with non-null planned_week (linked to the plan)
+      const X = workouts.filter(w => w.planned_week !== null).length;
+
+      const Z = Y > 0 ? Math.round(X / Y * 100) : 0;
+
+      const el = document.getElementById('progress');
+      el.innerHTML = `
+        <p class="text-sm text-muted" style="margin-bottom:.6rem;">
+          Total framsteg: ${X} av ${Y} pass klara (${Z}%)
+        </p>
+        <div class="progress-bar-wrap thick">
+          <div class="progress-bar-fill" style="width:${Math.min(Z, 100)}%"></div>
+        </div>`;
     }
 
     function renderStats(plan, workouts) {
-      // TODO: Task 6
+      // Same Y/X calculation as renderProgress
+      const DAY_KEYS = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
+
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      let Y = 0;
+      for (const week of plan.weeks) {
+        const weekStart = new Date(week.start_date);
+        weekStart.setHours(0, 0, 0, 0);
+        if (weekStart > today) continue;
+        DAY_KEYS.forEach((key, idx) => {
+          const day = week.days[key];
+          if (!day || day.type === 'rest') return;
+          const dayDate = new Date(weekStart);
+          dayDate.setDate(weekStart.getDate() + idx);
+          dayDate.setHours(0, 0, 0, 0);
+          if (dayDate <= today) Y++;
+        });
+      }
+
+      const X = workouts.filter(w => w.planned_week !== null).length;
+      const adherencePct = Y > 0 ? Math.round(X / Y * 100) : 0;
+
+      // Sum of all distance_km (all workouts, including bonus)
+      const totalKm = workouts.reduce((sum, w) => sum + (w.distance_km || 0), 0);
+      const totalKmDisplay = Number.isInteger(totalKm) ? totalKm : totalKm.toFixed(1);
+
+      // Total count of all logged workouts
+      const totalWorkouts = workouts.length;
+
+      // Count gym workouts
+      const gymCount = workouts.filter(w => w.type === 'gym').length;
+
+      const el = document.getElementById('stats');
+      el.innerHTML = `
+        <div class="stats-grid">
+          <div class="stat-card">
+            <span class="stat-value">${totalKmDisplay}</span>
+            <span class="stat-label">Km löpt</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-value">${totalWorkouts}</span>
+            <span class="stat-label">Pass klara</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-value">${gymCount}</span>
+            <span class="stat-label">Gympass</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-value">${adherencePct}%</span>
+            <span class="stat-label">Följsamhet</span>
+          </div>
+        </div>`;
     }
 
     function renderCurrentWeek(plan, workouts) {
