@@ -714,6 +714,29 @@
       return d.toLocaleDateString('sv-SE', { day: 'numeric', month: 'short' });
     }
 
+    /** Short label for a planned day card */
+    function shortLabel(planDay) {
+      if (!planDay || planDay.type === 'rest') return '';
+      const desc = planDay.description || '';
+      if (planDay.type === 'gym') {
+        if (desc.startsWith('Gym A')) return 'Gym A';
+        if (desc.startsWith('Gym B')) return 'Gym B';
+        return 'Gym';
+      }
+      if (planDay.type === 'tempo') {
+        // Extract tempo detail like "4×2 min" from description
+        const match = desc.match(/(\d+)[×x](\d+)\s*min/);
+        const tempoInfo = match ? `${match[1]}×${match[2]}m` : 'tempo';
+        const km = planDay.distance_km;
+        const kmStr = km ? (Number.isInteger(km) ? km : km.toFixed(1)) + ' km' : '';
+        return kmStr ? `${kmStr}<br><span style="font-size:.55rem;color:var(--text-dim)">${tempoInfo}</span>` : tempoInfo;
+      }
+      // running, long_run — show distance
+      const km = planDay.distance_km;
+      if (km) return (Number.isInteger(km) ? km : km.toFixed(1)) + ' km';
+      return desc.slice(0, 10);
+    }
+
     /**
      * Returns a local-timezone YYYY-MM-DD string for the given Date object.
      * Using toISOString() would return UTC and can be off by a day between
@@ -965,20 +988,17 @@
             const kmDisplay = km ? (Number.isInteger(km) ? km : km.toFixed(1)) : '';
             stateClass = 'done';
             iconHtml   = `<span class="day-icon" style="color:var(--green)">✓</span>`;
-            labelHtml  = kmDisplay ? `<span class="day-km">${kmDisplay} km</span>` : '';
+            labelHtml  = kmDisplay ? `<span class="day-km">${kmDisplay} km</span>`
+                       : `<span class="day-km">${shortLabel(planDay)}</span>`;
           } else if (isDatePassed(dayStr)) {
             // Missed — date has passed with no workout logged
             stateClass = 'missed';
             iconHtml   = `<span class="day-icon" style="color:var(--red)">!</span>`;
-            labelHtml  = '';
+            labelHtml  = `<span class="day-km" style="font-size:.6rem">${shortLabel(planDay)}</span>`;
           } else {
             // Planned — future (or today)
             stateClass = isToday ? 'planned today' : 'planned';
-            const km = planDay.distance_km;
-            const kmDisplay = km ? (Number.isInteger(km) ? km : km.toFixed(1)) : '';
-            iconHtml = kmDisplay
-              ? `<span class="day-km" style="font-size:.8rem; font-weight:700;">${kmDisplay} km</span>`
-              : `<span class="day-label">${planDay.description ? planDay.description.slice(0, 12) : ''}</span>`;
+            iconHtml   = `<span class="day-km" style="font-size:.8rem; font-weight:700;">${shortLabel(planDay)}</span>`;
             if (isToday) {
               badge = `<span class="badge blue" style="font-size:.55rem; padding:.1rem .3rem;">IDAG</span>`;
             }
