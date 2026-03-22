@@ -746,6 +746,14 @@
       return `${types.length} extra (${parts.join(', ')})`;
     }
 
+    /** Label for a bonus workout card (handles gym with no distance_km) */
+    function bonusLabel(workout) {
+      if (workout.type === 'gym') return 'Gym';
+      const km = workout.distance_km;
+      if (!km) return workout.type;
+      return (Number.isInteger(km) ? km : km.toFixed(1)) + ' km';
+    }
+
     /** Short label for a planned day card */
     function shortLabel(planDay) {
       if (!planDay || planDay.type === 'rest') return '';
@@ -942,11 +950,9 @@
             // Bonus workout on a day with no plan entry
             bonusCount++;
             bonusTypes.push(bonusWorkout.type);
-            const km = bonusWorkout.distance_km;
-            const kmDisplay = Number.isInteger(km) ? km : km.toFixed(1);
             stateClass = 'bonus';
             iconHtml   = `<span class="day-icon">★</span>`;
-            labelHtml  = `<span class="day-km">${kmDisplay} km</span>`;
+            labelHtml  = `<span class="day-km">${bonusLabel(bonusWorkout)}</span>`;
           } else {
             // No plan entry and no bonus — dimmed blank
             stateClass = '';
@@ -958,11 +964,9 @@
             // Bonus session on a rest day
             bonusCount++;
             bonusTypes.push(bonusWorkout.type);
-            const km = bonusWorkout.distance_km;
-            const kmDisplay = Number.isInteger(km) ? km : km.toFixed(1);
             stateClass = 'bonus';
             iconHtml   = `<span class="day-icon">★</span>`;
-            labelHtml  = `<span class="day-km">${kmDisplay} km</span>`;
+            labelHtml  = `<span class="day-km">${bonusLabel(bonusWorkout)}</span>`;
           } else {
             stateClass = 'rest';
             iconHtml   = `<span class="day-icon" style="color:var(--text-dim); font-size:.75rem;">Vila</span>`;
