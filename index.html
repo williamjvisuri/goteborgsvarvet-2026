@@ -563,7 +563,7 @@
       .day-card { padding: .4rem .2rem; min-height: 64px; }
       .day-name { font-size: .58rem; }
       .day-icon { font-size: 1rem; }
-      .chart-height { height: 200px; }
+      .chart-height { height: 200px !important; }
     }
 
     @media (max-width: 380px) {
@@ -575,8 +575,10 @@
       .day-card { min-height: 58px; }
       .day-name-short { display: inline; }
       .day-name-full  { display: none; }
-      .chart-height { height: 180px; }
+      .chart-height { height: 180px !important; }
     }
+
+    .chart-height { height: 250px; }
 
     /* Default: show full, hide short */
     .day-name-short { display: none; }
@@ -1157,7 +1159,7 @@
       el.innerHTML = `
         <p class="section-title">KILOMETERVOLYM</p>
         <div class="chart-wrap">
-          <div class="chart-height" style="position:relative; height:250px;">
+          <div class="chart-height" style="position:relative;">
             <canvas id="volumeChart"></canvas>
           </div>
         </div>
