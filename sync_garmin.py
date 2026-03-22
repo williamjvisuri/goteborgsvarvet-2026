@@ -20,7 +20,8 @@ SCRIPT_DIR = Path(__file__).parent.resolve()
 WORKOUTS_FILE = SCRIPT_DIR / "workouts.json"
 PLAN_FILE = SCRIPT_DIR / "plan.json"
 
-DAY_KEYS = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"]
+# Maps Python weekday() (0=Monday) to plan.json day keys
+WEEKDAY_TO_KEY = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"]
 
 
 def estimate_rpe(avg_hr):
@@ -45,14 +46,15 @@ def match_plan(activity_date_str, plan):
     Returnerar (planned_week, planned_day, session_type) eller (None, None, None).
     """
     activity_date = datetime.strptime(activity_date_str, "%Y-%m-%d").date()
+    # Day key comes from actual calendar day, not offset from week start_date,
+    # because weeks in plan.json do not always start on Monday.
+    day_key = WEEKDAY_TO_KEY[activity_date.weekday()]
 
     for week in plan.get("weeks", []):
         start = datetime.strptime(week["start_date"], "%Y-%m-%d").date()
         end = start + timedelta(days=6)
 
         if start <= activity_date <= end:
-            day_offset = (activity_date - start).days
-            day_key = DAY_KEYS[day_offset]
             planned_day = week.get("days", {}).get(day_key)
 
             if planned_day and planned_day.get("type") in RUNNING_TYPES:
