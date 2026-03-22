@@ -613,11 +613,11 @@
     <!-- Current week -->
     <section class="section" id="current-week"></section>
 
-    <!-- Chart -->
-    <section class="section" id="chart"></section>
-
     <!-- All weeks -->
     <section class="section" id="all-weeks"></section>
+
+    <!-- Chart -->
+    <section class="section" id="chart"></section>
 
     <!-- Footer -->
     <footer class="page-footer" id="page-footer"></footer>
@@ -714,6 +714,47 @@
       return d.toLocaleDateString('sv-SE', { day: 'numeric', month: 'short' });
     }
 
+    /**
+     * Returns a local-timezone YYYY-MM-DD string for the given Date object.
+     * Using toISOString() would return UTC and can be off by a day between
+     * midnight and 02:00 in Sweden (UTC+1/+2).
+     */
+    function toDateStr(d) {
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      return `${y}-${m}-${day}`;
+    }
+
+    /**
+     * Calculates adherence stats shared by renderProgress and renderStats.
+     * Returns { Y (elapsed planned sessions), X (completed planned), pct }.
+     */
+    function calcAdherence(plan, workouts) {
+      const DAY_KEYS = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      let Y = 0;
+      for (const week of plan.weeks) {
+        const weekStart = new Date(week.start_date);
+        weekStart.setHours(0, 0, 0, 0);
+        if (weekStart > today) continue;
+        DAY_KEYS.forEach((key, idx) => {
+          const day = week.days[key];
+          if (!day || day.type === 'rest') return;
+          const dayDate = new Date(weekStart);
+          dayDate.setDate(weekStart.getDate() + idx);
+          dayDate.setHours(0, 0, 0, 0);
+          if (dayDate <= today) Y++;
+        });
+      }
+
+      const X = workouts.filter(w => w.planned_week !== null).length;
+      const pct = Y > 0 ? Math.round(X / Y * 100) : 0;
+      return { elapsed: Y, completed: X, pct };
+    }
+
     // ─── Render: Hero ─────────────────────────────────────────────────
 
     function renderHero(plan) {
@@ -764,33 +805,7 @@
     // ─── Render stubs ─────────────────────────────────────────────────
 
     function renderProgress(plan, workouts) {
-      // Day keys in order (weeks start on Monday in plan.json)
-      const DAY_KEYS = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
-
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-
-      // Y = count all non-null, non-rest planned sessions where the day's date <= today
-      let Y = 0;
-      for (const week of plan.weeks) {
-        const weekStart = new Date(week.start_date);
-        weekStart.setHours(0, 0, 0, 0);
-        // Skip weeks that haven't started yet
-        if (weekStart > today) continue;
-        DAY_KEYS.forEach((key, idx) => {
-          const day = week.days[key];
-          if (!day || day.type === 'rest') return;
-          const dayDate = new Date(weekStart);
-          dayDate.setDate(weekStart.getDate() + idx);
-          dayDate.setHours(0, 0, 0, 0);
-          if (dayDate <= today) Y++;
-        });
-      }
-
-      // X = count of workouts with non-null planned_week (linked to the plan)
-      const X = workouts.filter(w => w.planned_week !== null).length;
-
-      const Z = Y > 0 ? Math.round(X / Y * 100) : 0;
+      const { elapsed: Y, completed: X, pct: Z } = calcAdherence(plan, workouts);
 
       const el = document.getElementById('progress');
       el.innerHTML = `
@@ -805,29 +820,7 @@
     }
 
     function renderStats(plan, workouts) {
-      // Same Y/X calculation as renderProgress
-      const DAY_KEYS = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
-
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-
-      let Y = 0;
-      for (const week of plan.weeks) {
-        const weekStart = new Date(week.start_date);
-        weekStart.setHours(0, 0, 0, 0);
-        if (weekStart > today) continue;
-        DAY_KEYS.forEach((key, idx) => {
-          const day = week.days[key];
-          if (!day || day.type === 'rest') return;
-          const dayDate = new Date(weekStart);
-          dayDate.setDate(weekStart.getDate() + idx);
-          dayDate.setHours(0, 0, 0, 0);
-          if (dayDate <= today) Y++;
-        });
-      }
-
-      const X = workouts.filter(w => w.planned_week !== null).length;
-      const adherencePct = Y > 0 ? Math.round(X / Y * 100) : 0;
+      const { pct: adherencePct } = calcAdherence(plan, workouts);
 
       // Sum of all distance_km (all workouts, including bonus)
       const totalKm = workouts.reduce((sum, w) => sum + (w.distance_km || 0), 0);
@@ -872,7 +865,7 @@
       const DAY_LABELS = ['MÅN', 'TIS', 'ONS', 'TOR', 'FRE', 'LÖR', 'SÖN'];
       const DAY_ABBREV = ['M',   'T',   'O',   'T',   'F',   'L',   'S'];
 
-      const todayStr = new Date().toISOString().slice(0, 10);
+      const todayStr = toDateStr(new Date());
 
       // Compute Monday of the calendar week that contains start_date.
       // This ensures day indices map to actual Mon–Sun regardless of
@@ -894,7 +887,7 @@
       DAY_KEYS.forEach((key, idx) => {
         const dayDate = new Date(monday);
         dayDate.setDate(monday.getDate() + idx);
-        const dayStr = dayDate.toISOString().slice(0, 10);
+        const dayStr = toDateStr(dayDate);
 
         const planDay = week.days[key] ?? null;
         const isToday = (dayStr === todayStr);
@@ -915,10 +908,20 @@
         let badge      = '';
 
         if (planDay === null) {
-          // No plan entry — dimmed blank
-          stateClass = '';
-          iconHtml   = `<span class="day-icon" style="color:var(--text-dim)">—</span>`;
-          labelHtml  = '';
+          if (bonusWorkout) {
+            // Bonus workout on a day with no plan entry
+            bonusCount++;
+            const km = bonusWorkout.distance_km;
+            const kmDisplay = Number.isInteger(km) ? km : km.toFixed(1);
+            stateClass = 'bonus';
+            iconHtml   = `<span class="day-icon">★</span>`;
+            labelHtml  = `<span class="day-km">${kmDisplay} km</span>`;
+          } else {
+            // No plan entry and no bonus — dimmed blank
+            stateClass = '';
+            iconHtml   = `<span class="day-icon" style="color:var(--text-dim)">—</span>`;
+            labelHtml  = '';
+          }
         } else if (planDay.type === 'rest') {
           if (bonusWorkout) {
             // Bonus session on a rest day
@@ -933,8 +936,27 @@
             iconHtml   = `<span class="day-icon" style="color:var(--text-dim); font-size:.75rem;">Vila</span>`;
             labelHtml  = '';
           }
+        } else if (planDay.type === 'race') {
+          // Race day — never mark as missed; use amber styling
+          plannedCount++;
+          if (completedWorkout) {
+            completedCount++;
+            const km = completedWorkout.distance_km;
+            const kmDisplay = km ? (Number.isInteger(km) ? km : km.toFixed(1)) : '';
+            stateClass = 'done';
+            iconHtml   = `<span class="day-icon" style="color:var(--green)">✓</span>`;
+            labelHtml  = kmDisplay ? `<span class="day-km">${kmDisplay} km</span>` : '';
+          } else {
+            // Upcoming or today — amber race styling, never "missed"
+            stateClass = isToday ? 'race today' : 'race';
+            iconHtml   = `<span class="day-icon" style="color:var(--amber)">🏁</span>`;
+            labelHtml  = '';
+            if (isToday) {
+              badge = `<span class="badge amber" style="font-size:.55rem; padding:.1rem .3rem;">IDAG</span>`;
+            }
+          }
         } else {
-          // Planned session (running, gym, long_run, tempo, race, …)
+          // Planned session (running, gym, long_run, tempo, …)
           plannedCount++;
           if (completedWorkout) {
             // Completed planned session
@@ -980,7 +1002,7 @@
     }
 
     function renderCurrentWeek(plan, workouts) {
-      const todayStr = new Date().toISOString().slice(0, 10);
+      const todayStr = toDateStr(new Date());
       const week = getWeekForDate(plan, todayStr);
 
       const el = document.getElementById('current-week');
@@ -993,7 +1015,7 @@
       const startDate = new Date(week.start_date);
       const endDate   = new Date(startDate);
       endDate.setDate(startDate.getDate() + 6);
-      const dateRange = `${formatDate(week.start_date)} – ${formatDate(endDate.toISOString().slice(0, 10))}`;
+      const dateRange = `${formatDate(week.start_date)} – ${formatDate(toDateStr(endDate))}`;
 
       // Render the section title row
       el.innerHTML = `
@@ -1024,7 +1046,7 @@
       const el = document.getElementById('all-weeks');
       if (!el) return;
 
-      const todayStr = new Date().toISOString().slice(0, 10);
+      const todayStr = toDateStr(new Date());
       const currentWeek = getWeekForDate(plan, todayStr);
       const currentWeekId = currentWeek ? currentWeek.id : null;
 
