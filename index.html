@@ -764,12 +764,9 @@
         return 'Gym';
       }
       if (planDay.type === 'tempo') {
-        // Extract tempo detail like "4×2 min" from description
         const match = desc.match(/(\d+)[×x](\d+)\s*min/);
-        const tempoInfo = match ? `${match[1]}×${match[2]}m` : 'tempo';
-        const km = planDay.distance_km;
-        const kmStr = km ? (Number.isInteger(km) ? km : km.toFixed(1)) + ' km' : '';
-        return kmStr ? `${kmStr}<br><span style="font-size:.55rem;color:var(--text-dim)">${tempoInfo}</span>` : tempoInfo;
+        const tempoInfo = match ? `${match[1]}×${match[2]}m` : '';
+        return `Intervall<br><span style="font-size:.5rem;color:var(--text-dim)">${tempoInfo}</span>`;
       }
       // running, long_run — show distance
       const km = planDay.distance_km;
