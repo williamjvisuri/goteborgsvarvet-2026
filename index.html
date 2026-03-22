@@ -784,8 +784,161 @@
         </div>`;
     }
 
+    /**
+     * Given a week object and all workouts, builds the 7-day grid HTML
+     * and inserts it into `container` (a DOM element).
+     * Also returns counts: { completed, planned, bonus }
+     */
+    function renderDayGrid(week, workouts, container) {
+      const DAY_KEYS   = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
+      const DAY_LABELS = ['MÅN', 'TIS', 'ONS', 'TOR', 'FRE', 'LÖR', 'SÖN'];
+
+      const todayStr = new Date().toISOString().slice(0, 10);
+
+      // Compute Monday of the calendar week that contains start_date.
+      // This ensures day indices map to actual Mon–Sun regardless of
+      // what day of the week start_date falls on.
+      const sd = new Date(week.start_date);
+      sd.setHours(0, 0, 0, 0);
+      // getDay(): 0=Sun, 1=Mon, …, 6=Sat
+      const sdDow = sd.getDay(); // day-of-week of start_date
+      const daysFromMon = (sdDow === 0) ? 6 : sdDow - 1; // distance back to Monday
+      const monday = new Date(sd);
+      monday.setDate(sd.getDate() - daysFromMon);
+
+      let completedCount = 0;
+      let plannedCount   = 0;
+      let bonusCount     = 0;
+
+      let html = '<div class="day-grid">';
+
+      DAY_KEYS.forEach((key, idx) => {
+        const dayDate = new Date(monday);
+        dayDate.setDate(monday.getDate() + idx);
+        const dayStr = dayDate.toISOString().slice(0, 10);
+
+        const planDay = week.days[key] ?? null;
+        const isToday = (dayStr === todayStr);
+
+        // Look for a completed planned workout for this day
+        const completedWorkout = workouts.find(
+          w => w.planned_week === week.id && w.planned_day === key
+        );
+
+        // Look for a bonus workout on this exact date
+        const bonusWorkout = workouts.find(
+          w => w.planned_week === null && w.date === dayStr
+        );
+
+        let stateClass = '';
+        let iconHtml   = '';
+        let labelHtml  = '';
+        let badge      = '';
+
+        if (planDay === null) {
+          // No plan entry — dimmed blank
+          stateClass = '';
+          iconHtml   = `<span class="day-icon" style="color:var(--text-dim)">—</span>`;
+          labelHtml  = '';
+        } else if (planDay.type === 'rest') {
+          if (bonusWorkout) {
+            // Bonus session on a rest day
+            bonusCount++;
+            const km = bonusWorkout.distance_km;
+            const kmDisplay = Number.isInteger(km) ? km : km.toFixed(1);
+            stateClass = 'bonus';
+            iconHtml   = `<span class="day-icon">★</span>`;
+            labelHtml  = `<span class="day-km">${kmDisplay} km</span>`;
+          } else {
+            stateClass = 'rest';
+            iconHtml   = `<span class="day-icon" style="color:var(--text-dim); font-size:.75rem;">Vila</span>`;
+            labelHtml  = '';
+          }
+        } else {
+          // Planned session (running, gym, long_run, tempo, race, …)
+          plannedCount++;
+          if (completedWorkout) {
+            // Completed planned session
+            completedCount++;
+            const km = completedWorkout.distance_km;
+            const kmDisplay = km ? (Number.isInteger(km) ? km : km.toFixed(1)) : '';
+            stateClass = 'done';
+            iconHtml   = `<span class="day-icon" style="color:var(--green)">✓</span>`;
+            labelHtml  = kmDisplay ? `<span class="day-km">${kmDisplay} km</span>` : '';
+          } else if (isDatePassed(dayStr)) {
+            // Missed — date has passed with no workout logged
+            stateClass = 'missed';
+            iconHtml   = `<span class="day-icon" style="color:var(--red)">!</span>`;
+            labelHtml  = '';
+          } else {
+            // Planned — future (or today)
+            stateClass = isToday ? 'planned today' : 'planned';
+            const km = planDay.distance_km;
+            const kmDisplay = km ? (Number.isInteger(km) ? km : km.toFixed(1)) : '';
+            iconHtml = kmDisplay
+              ? `<span class="day-km" style="font-size:.8rem; font-weight:700;">${kmDisplay} km</span>`
+              : `<span class="day-label">${planDay.description ? planDay.description.slice(0, 12) : ''}</span>`;
+            if (isToday) {
+              badge = `<span class="badge blue" style="font-size:.55rem; padding:.1rem .3rem;">IDAG</span>`;
+            }
+            labelHtml = '';
+          }
+        }
+
+        html += `
+          <div class="day-card ${stateClass}">
+            <span class="day-name">${DAY_LABELS[idx]}</span>
+            ${iconHtml}
+            ${labelHtml}
+            ${badge}
+          </div>`;
+      });
+
+      html += '</div>';
+      container.innerHTML = html;
+
+      return { completed: completedCount, planned: plannedCount, bonus: bonusCount };
+    }
+
     function renderCurrentWeek(plan, workouts) {
-      // TODO: Task 7
+      const todayStr = new Date().toISOString().slice(0, 10);
+      const week = getWeekForDate(plan, todayStr);
+
+      const el = document.getElementById('current-week');
+      if (!week) {
+        el.innerHTML = '';
+        return;
+      }
+
+      // Build the date-range label, e.g. "19 mar – 25 mar"
+      const startDate = new Date(week.start_date);
+      const endDate   = new Date(startDate);
+      endDate.setDate(startDate.getDate() + 6);
+      const dateRange = `${formatDate(week.start_date)} – ${formatDate(endDate.toISOString().slice(0, 10))}`;
+
+      // Render the section title row
+      el.innerHTML = `
+        <p class="section-title">Aktuell vecka</p>
+        <div class="card">
+          <div class="current-week-header">
+            <div>
+              <div class="current-week-title">${week.label}</div>
+              <div class="current-week-phase">${dateRange} · ${week.phase} · Mål: ${week.total_km} km</div>
+            </div>
+            <span class="badge blue">PÅGÅR</span>
+          </div>
+          <div id="current-week-grid"></div>
+          <div id="current-week-count" class="text-sm text-muted mt-sm"></div>
+        </div>`;
+
+      const gridContainer = document.getElementById('current-week-grid');
+      const counts = renderDayGrid(week, workouts, gridContainer);
+
+      // Count line
+      const countEl = document.getElementById('current-week-count');
+      let countText = `${counts.completed}/${counts.planned} pass`;
+      if (counts.bonus > 0) countText += ` + ${counts.bonus} extra`;
+      countEl.textContent = countText;
     }
 
     function renderAllWeeks(plan, workouts) {
