@@ -10,7 +10,7 @@
       "id": "intro",
       "label": "Introvecka",
       "subtitle": "Kom igång",
-      "start_date": "2026-03-19",
+      "start_date": "2026-03-16",
       "phase": "Basuppbyggnad",
       "total_km": 7,
       "days": {
@@ -40,7 +40,7 @@
       "id": "v1",
       "label": "Vecka 1",
       "subtitle": "Basuppbyggnad",
-      "start_date": "2026-03-24",
+      "start_date": "2026-03-23",
       "phase": "Basuppbyggnad",
       "total_km": 12,
       "days": {
@@ -85,7 +85,7 @@
       "id": "v2",
       "label": "Vecka 2",
       "subtitle": "Basuppbyggnad",
-      "start_date": "2026-03-31",
+      "start_date": "2026-03-30",
       "phase": "Basuppbyggnad",
       "total_km": 14,
       "days": {
@@ -130,7 +130,7 @@
       "id": "v3",
       "label": "Vecka 3",
       "subtitle": "Basuppbyggnad + Gym split",
-      "start_date": "2026-04-07",
+      "start_date": "2026-04-06",
       "phase": "Basuppbyggnad",
       "total_km": 16,
       "days": {
@@ -184,7 +184,7 @@
       "id": "v4",
       "label": "Vecka 4",
       "subtitle": "Avlastning (−25%)",
-      "start_date": "2026-04-14",
+      "start_date": "2026-04-13",
       "phase": "Avlastning",
       "total_km": 12,
       "days": {
@@ -238,7 +238,7 @@
       "id": "v5",
       "label": "Vecka 5",
       "subtitle": "Toppfas + tempo",
-      "start_date": "2026-04-21",
+      "start_date": "2026-04-20",
       "phase": "Toppfas",
       "total_km": 19,
       "days": {
@@ -292,7 +292,7 @@
       "id": "v6",
       "label": "Vecka 6",
       "subtitle": "Toppfas",
-      "start_date": "2026-04-28",
+      "start_date": "2026-04-27",
       "phase": "Toppfas",
       "total_km": 22,
       "days": {
@@ -346,7 +346,7 @@
       "id": "v7",
       "label": "Vecka 7",
       "subtitle": "Toppfas",
-      "start_date": "2026-05-05",
+      "start_date": "2026-05-04",
       "phase": "Toppfas",
       "total_km": 25,
       "days": {
@@ -400,7 +400,7 @@
       "id": "v8",
       "label": "Vecka 8",
       "subtitle": "Längsta passet",
-      "start_date": "2026-05-12",
+      "start_date": "2026-05-11",
       "phase": "Toppfas",
       "total_km": 27,
       "days": {
@@ -455,7 +455,7 @@
       "id": "v9",
       "label": "Vecka 9",
       "subtitle": "Taper + Loppdag",
-      "start_date": "2026-05-19",
+      "start_date": "2026-05-18",
       "phase": "Taper",
       "total_km": 25,
       "days": {
