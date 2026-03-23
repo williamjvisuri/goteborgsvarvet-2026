@@ -95,3 +95,60 @@ def calc_overall_stats(plan, workouts, today=None):
         "longest_run_date": longest_date,
         "bonus_count": bonus,
     }
+
+
+def calc_weekly_stats(plan, workouts, today=None):
+    """Per-week stats for all weeks with at least one elapsed session."""
+    if today is None:
+        today = date.today()
+
+    results = []
+    for week in plan["weeks"]:
+        week_id = week["id"]
+        # Count elapsed planned sessions in this week
+        sessions_planned = 0
+        km_planned = 0.0
+        rpe_planned_vals = []
+        for idx, key in enumerate(DAY_KEYS):
+            day = week["days"].get(key)
+            if not day or day.get("type") in ("rest", "race"):
+                continue
+            if session_date(week["start_date"], idx) <= today:
+                sessions_planned += 1
+                km_planned += day.get("distance_km", 0)
+                rpe = parse_rpe(day.get("rpe"))
+                if rpe is not None:
+                    rpe_planned_vals.append(rpe)
+
+        if sessions_planned == 0:
+            continue
+
+        # Workouts logged for this week
+        week_workouts = [w for w in workouts if w.get("planned_week") == week_id]
+        sessions_done = len(week_workouts)
+        km_actual = sum(w.get("distance_km", 0) for w in week_workouts)
+
+        # Pace from running workouts in this week
+        run_workouts = [w for w in week_workouts if w.get("type") in RUNNING_TYPES]
+        total_dur = sum(w["duration_min"] for w in run_workouts if w.get("duration_min"))
+        total_dist = sum(w["distance_km"] for w in run_workouts if w.get("distance_km"))
+        pace = format_pace(total_dur, total_dist)
+
+        # RPE
+        rpe_actual_vals = [w["rpe"] for w in week_workouts if w.get("rpe") is not None]
+        rpe_planned = round(sum(rpe_planned_vals) / len(rpe_planned_vals), 1) if rpe_planned_vals else None
+        rpe_actual = round(sum(rpe_actual_vals) / len(rpe_actual_vals), 1) if rpe_actual_vals else None
+
+        results.append({
+            "id": week_id,
+            "label": week["label"],
+            "phase": week["phase"],
+            "sessions_planned": sessions_planned,
+            "sessions_done": sessions_done,
+            "km_planned": km_planned,
+            "km_actual": km_actual,
+            "pace": pace,
+            "rpe_planned": rpe_planned,
+            "rpe_actual": rpe_actual,
+        })
+    return results

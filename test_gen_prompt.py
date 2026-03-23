@@ -76,3 +76,20 @@ def test_overall_stats_no_workouts(sample_plan):
     assert stats["adherence_pct"] == 0
     assert stats["km_actual"] == 0
     assert stats["longest_run_km"] == 0
+
+
+from gen_prompt import calc_weekly_stats
+
+def test_weekly_stats_intro(sample_plan, sample_workouts):
+    """Intro week should show 2/2 sessions, correct km, pace, RPE."""
+    weeks = calc_weekly_stats(sample_plan, sample_workouts, today=date(2026, 3, 23))
+    assert len(weeks) == 1  # only intro is elapsed
+    intro = weeks[0]
+    assert intro["label"] == "Introvecka"
+    assert intro["sessions_done"] == 2
+    assert intro["sessions_planned"] == 2
+    assert intro["km_planned"] == 7.0
+    assert intro["km_actual"] == 7.0
+    assert intro["pace"] is not None  # should have a pace string
+    assert intro["rpe_planned"] is not None
+    assert intro["rpe_actual"] is not None
