@@ -2,6 +2,7 @@
 """Generate an AI coaching prompt from plan.json + workouts.json."""
 
 import json
+import subprocess
 import sys
 from datetime import date, timedelta
 from pathlib import Path
@@ -212,15 +213,163 @@ def upcoming_sessions(plan, today=None):
 
 
 def current_week_info(plan, today=None):
-    """Find current week label and phase."""
+    """Find current week label, phase, and day-of-week index (0=mon)."""
     if today is None:
         today = date.today()
     for week in plan["weeks"]:
         start = session_date(week["start_date"], 0)
         end = start + timedelta(days=6)
         if start <= today <= end:
-            return week["label"], week["phase"]
-    return None, None
+            day_in_week = (today - start).days + 1  # 1-7
+            return week["label"], week["phase"], day_in_week
+    return None, None, None
+
+
+def individual_sessions(plan, workouts, today=None):
+    """Build a list of individual sessions with plan vs actual data."""
+    if today is None:
+        today = date.today()
+    sv_months = {1: "jan", 2: "feb", 3: "mar", 4: "apr", 5: "maj", 6: "jun",
+                 7: "jul", 8: "aug", 9: "sep", 10: "okt", 11: "nov", 12: "dec"}
+    # Index workouts by (planned_week, planned_day)
+    wo_by_key = {}
+    for w in workouts:
+        key = (w.get("planned_week"), w.get("planned_day"))
+        if key != (None, None):
+            wo_by_key[key] = w
+
+    rows = []
+    for week in plan["weeks"]:
+        for idx, key in enumerate(DAY_KEYS):
+            day = week["days"].get(key)
+            if not day or day.get("type") in ("rest", "race"):
+                continue
+            d = session_date(week["start_date"], idx)
+            if d > today:
+                continue
+            wo = wo_by_key.get((week["id"], key))
+            plan_km = day.get("distance_km", 0)
+            plan_rpe = day.get("rpe", "—")
+            if wo:
+                actual_km = wo.get("distance_km", 0)
+                actual_rpe = wo.get("rpe", "—")
+                pace = format_pace(wo.get("duration_min", 0), actual_km) if wo.get("type") in RUNNING_TYPES else "—"
+                note = wo.get("note", "")
+                status = "Done"
+            else:
+                actual_km = "—"
+                actual_rpe = "—"
+                pace = "—"
+                note = ""
+                status = "MISSED"
+            rows.append({
+                "date": f"{d.day} {sv_months[d.month]}",
+                "week": week["label"],
+                "type": day["type"],
+                "plan_km": plan_km,
+                "actual_km": actual_km,
+                "plan_rpe": plan_rpe,
+                "actual_rpe": actual_rpe,
+                "pace": pace,
+                "note": note,
+                "status": status,
+            })
+
+    # Bonus workouts
+    for w in workouts:
+        if w.get("planned_week") is not None:
+            continue
+        d = date.fromisoformat(w["date"])
+        if d > today:
+            continue
+        rows.append({
+            "date": f"{d.day} {sv_months[d.month]}",
+            "week": "Bonus",
+            "type": w.get("type", "?"),
+            "plan_km": "—",
+            "actual_km": w.get("distance_km", "—"),
+            "plan_rpe": "—",
+            "actual_rpe": w.get("rpe", "—"),
+            "pace": format_pace(w.get("duration_min", 0), w.get("distance_km", 0)) or "—" if w.get("type") in RUNNING_TYPES else "—",
+            "note": w.get("note", ""),
+            "status": "Bonus",
+        })
+    return rows
+
+
+def long_run_progression(plan, workouts):
+    """Extract planned long run distances and mark completed ones."""
+    planned = []
+    completed_km = set()
+    for w in workouts:
+        if w.get("type") == "long_run":
+            completed_km.add(w["date"])
+
+    for week in plan["weeks"]:
+        for idx, key in enumerate(DAY_KEYS):
+            day = week["days"].get(key)
+            if not day or day.get("type") != "long_run":
+                continue
+            d = session_date(week["start_date"], idx)
+            wo = next((w for w in workouts if w.get("planned_week") == week["id"] and w.get("planned_day") == key), None)
+            actual = wo["distance_km"] if wo else None
+            planned.append({
+                "week": week["label"],
+                "planned_km": day["distance_km"],
+                "actual_km": actual,
+            })
+    return planned
+
+
+def macro_overview(plan):
+    """Compact macro-cycle overview string."""
+    phases = []
+    current_phase = None
+    phase_start = None
+    phase_end = None
+    phase_km = []
+    for week in plan["weeks"]:
+        p = week["phase"]
+        if p != current_phase:
+            if current_phase:
+                km_range = f"{min(phase_km)}→{max(phase_km)} km" if min(phase_km) != max(phase_km) else f"{phase_km[0]} km"
+                phases.append(f"{current_phase} ({phase_start}–{phase_end}, {km_range})")
+            current_phase = p
+            phase_start = week["label"]
+            phase_km = []
+        phase_end = week["label"]
+        phase_km.append(week["total_km"])
+    if current_phase:
+        km_range = f"{min(phase_km)}→{max(phase_km)} km" if min(phase_km) != max(phase_km) else f"{phase_km[0]} km"
+        phases.append(f"{current_phase} ({phase_start}–{phase_end}, {km_range})")
+    return " → ".join(phases) + " → Lopp"
+
+
+def estimated_finish(workouts):
+    """Estimate race finish time from average running pace."""
+    running = [w for w in workouts if w.get("type") in RUNNING_TYPES and w.get("duration_min") and w.get("distance_km")]
+    if not running:
+        return None
+    total_dur = sum(w["duration_min"] for w in running)
+    total_dist = sum(w["distance_km"] for w in running)
+    if total_dist == 0:
+        return None
+    pace = total_dur / total_dist  # min/km
+    finish_min = pace * 21.1
+    hours = int(finish_min // 60)
+    mins = int(finish_min % 60)
+    return f"~{hours}:{mins:02d}"
+
+
+def phase_instructions(phase):
+    """Return phase-specific coaching instruction."""
+    instructions = {
+        "Basuppbyggnad": "Vi är i basuppbyggnadsfasen. Fokusera på att tempo hålls lågt och att löparen bygger vana utan att göra för mycket för tidigt.",
+        "Avlastning": "Detta är en avlastningsvecka. Volymen ska vara lägre. Fokusera på att löparen verkligen vilar och inte kompenserar med extra pass.",
+        "Toppfas": "Vi är i toppfasen. Fokusera på att långpassen genomförs och att belastningen ökar kontrollerat. Flagga om RPE stiger okontrollerat.",
+        "Taper": "Detta är taperveckan före loppet. Lugna löparen. Mindre volym är meningen. Fokus på vila, näring och mental förberedelse.",
+    }
+    return instructions.get(phase)
 
 
 def build_prompt(plan, workouts, free_question=None, today=None):
@@ -230,12 +379,18 @@ def build_prompt(plan, workouts, free_question=None, today=None):
 
     race_date = date.fromisoformat(plan["race"]["date"])
     days_left = (race_date - today).days
-    week_label, week_phase = current_week_info(plan, today)
+    week_label, week_phase, day_num = current_week_info(plan, today)
     overall = calc_overall_stats(plan, workouts, today)
     weekly = calc_weekly_stats(plan, workouts, today)
     trends = calc_trends(weekly)
     gym = gym_summary(workouts)
     upcoming = upcoming_sessions(plan, today)
+    sessions = individual_sessions(plan, workouts, today)
+    lr_prog = long_run_progression(plan, workouts)
+    macro = macro_overview(plan)
+    est_finish = estimated_finish(workouts)
+
+    sv_weekdays = ["måndag", "tisdag", "onsdag", "torsdag", "fredag", "lördag", "söndag"]
 
     lines = []
 
@@ -248,10 +403,11 @@ def build_prompt(plan, workouts, free_question=None, today=None):
     lines.append("- Nybörjarlöpare, första halvmaran")
     lines.append("- Mål: jogga hela Göteborgsvarvet (21,1 km, 23 maj 2026) utan gångpauser")
     lines.append("- Gymträning 2×/vecka parallellt med löpningen")
-    lines.append(f"- Dagens datum: {today}")
+    lines.append(f"- Dagens datum: {today} ({sv_weekdays[today.weekday()]})")
     if week_label:
-        lines.append(f"- Aktuell vecka: {week_label} ({week_phase})")
-    lines.append(f"- Dagar till lopp: {days_left}\n")
+        lines.append(f"- Aktuell vecka: {week_label} ({week_phase}), dag {day_num}/7")
+    lines.append(f"- Dagar till lopp: {days_left}")
+    lines.append(f"- Planöversikt: {macro}\n")
 
     # 3. Sammanfattning
     lines.append("## Sammanfattning")
@@ -262,6 +418,8 @@ def build_prompt(plan, workouts, free_question=None, today=None):
         lines.append(f"- Km löpt: {overall['km_actual']} av {overall['km_planned']} km planerat")
         if overall["longest_run_km"]:
             lines.append(f"- Längsta löppass: {overall['longest_run_km']} km ({overall['longest_run_date']}) — mål: 21,1 km")
+        if est_finish:
+            lines.append(f"- Prognos sluttid vid nuvarande tempo: {est_finish} (osäkert, baserat på {overall['km_actual']} km data)")
         if overall["bonus_count"]:
             lines.append(f"- Bonuspass (utanför plan): {overall['bonus_count']}")
         lines.append("")
@@ -269,15 +427,46 @@ def build_prompt(plan, workouts, free_question=None, today=None):
         # Per-week table
         if weekly:
             lines.append("### Per vecka")
-            lines.append("| Vecka | Fas | Pass | Km plan | Km faktisk | Tempo | RPE plan | RPE faktisk |")
-            lines.append("|-------|-----|------|---------|------------|-------|----------|-------------|")
+            # Add km change % column
+            lines.append("| Vecka | Fas | Pass | Km plan | Km faktisk | Δ km% | Tempo | RPE plan → faktisk |")
+            lines.append("|-------|-----|------|---------|------------|-------|-------|-------------------|")
+            prev_km = None
             for w in weekly:
+                if prev_km and prev_km > 0:
+                    km_change = f"{round((w['km_planned'] - prev_km) / prev_km * 100):+d}%"
+                else:
+                    km_change = "—"
                 lines.append(
                     f"| {w['label']} | {w['phase']} | {w['sessions_done']}/{w['sessions_planned']} "
-                    f"| {w['km_planned']} | {w['km_actual']} | {w['pace'] or '—'} "
-                    f"| {w['rpe_planned'] or '—'} | {w['rpe_actual'] or '—'} |"
+                    f"| {w['km_planned']} | {w['km_actual']} | {km_change} | {w['pace'] or '—'} "
+                    f"| {w['rpe_planned'] or '—'} → {w['rpe_actual'] or '—'} |"
+                )
+                prev_km = w["km_planned"]
+            lines.append("")
+
+        # Individual sessions table (#1 + #3)
+        if sessions:
+            lines.append("### Alla pass (detalj)")
+            lines.append("| Datum | Vecka | Typ | Km plan | Km faktisk | RPE plan → faktisk | Tempo | Status | Anteckning |")
+            lines.append("|-------|-------|-----|---------|------------|-------------------|-------|--------|------------|")
+            for s in sessions:
+                lines.append(
+                    f"| {s['date']} | {s['week']} | {s['type']} | {s['plan_km']} | {s['actual_km']} "
+                    f"| {s['plan_rpe']} → {s['actual_rpe']} | {s['pace']} | {s['status']} | {s['note']} |"
                 )
             lines.append("")
+
+        # Long run progression (#4)
+        if lr_prog:
+            items = []
+            for lr in lr_prog:
+                if lr["actual_km"] is not None:
+                    items.append(f"**{lr['actual_km']}** km ({lr['week']})")
+                else:
+                    items.append(f"{lr['planned_km']} km ({lr['week']})")
+            lines.append(f"### Långpassprogression mot 21,1 km")
+            lines.append(" → ".join(items))
+            lines.append("(Fetstil = genomfört)\n")
 
         # Trends
         if trends:
@@ -316,9 +505,12 @@ def build_prompt(plan, workouts, free_question=None, today=None):
     lines.append("## Vad jag vill ha")
     if free_question:
         lines.append("Adressera min fråga först, ge sedan den vanliga analysen.\n")
+    phase_instr = phase_instructions(week_phase) if week_phase else None
+    if phase_instr:
+        lines.append(f"**Fas-kontext:** {phase_instr}\n")
     lines.append("1. **Följsamhet** — hur väl följer jag planen? Missade pass, avvikelser?")
-    lines.append("2. **Tempo/distans** — avviker mina faktiska resultat (km, tid, RPE) mycket från planen?")
-    lines.append("3. **Belastning** — ser du risk för överträning eller underträning?")
+    lines.append("2. **Tempo/distans** — avviker mina faktiska resultat (km, tid, RPE) mycket från planen? Titta på de individuella passen, inte bara veckomedel.")
+    lines.append("3. **Belastning** — ser du risk för överträning eller underträning? Notera km-ökning mellan veckor.")
     lines.append("4. **Rekommendation** — konkreta justeringar för kommande vecka, om några behövs.")
     lines.append("5. **Gym** — kommentar på gympass om det finns loggade sådana.")
     lines.append("\nSvara på svenska. Var rak och konkret — ingen fluff.\n")
@@ -339,8 +531,26 @@ def build_prompt(plan, workouts, free_question=None, today=None):
 
 def main():
     plan, workouts = load_data()
-    free_question = " ".join(sys.argv[1:]) if len(sys.argv) > 1 else None
-    print(build_prompt(plan, workouts, free_question))
+
+    # Parse flags
+    args = sys.argv[1:]
+    prompt_only = "--prompt" in args
+    args = [a for a in args if a != "--prompt"]
+    free_question = " ".join(args) if args else None
+
+    prompt = build_prompt(plan, workouts, free_question)
+
+    if prompt_only:
+        print(prompt)
+    else:
+        result = subprocess.run(
+            ["claude", "-p", "--model", "opus"],
+            input=prompt, text=True, capture_output=True,
+        )
+        print(result.stdout)
+        if result.returncode != 0:
+            print(result.stderr, file=sys.stderr)
+            sys.exit(result.returncode)
 
 
 if __name__ == "__main__":
