@@ -45,3 +45,53 @@ def format_pace(duration_min, distance_km):
         mins += 1
         secs = 0
     return f"{mins}:{secs:02d}"
+
+
+def calc_overall_stats(plan, workouts, today=None):
+    """Calculate overall adherence, km, longest run, bonus count."""
+    if today is None:
+        today = date.today()
+
+    # Elapsed planned sessions (exclude rest, null, race)
+    elapsed = 0
+    planned_km = 0.0
+    for week in plan["weeks"]:
+        for idx, key in enumerate(DAY_KEYS):
+            day = week["days"].get(key)
+            if not day or day.get("type") in ("rest", "race"):
+                continue
+            if session_date(week["start_date"], idx) <= today:
+                elapsed += 1
+                planned_km += day.get("distance_km", 0)
+
+    # Completed planned sessions
+    completed = sum(1 for w in workouts if w.get("planned_week") is not None)
+
+    # Actual km (all running workouts, including bonus)
+    km_actual = sum(w.get("distance_km", 0) for w in workouts if w.get("type") in RUNNING_TYPES)
+
+    # Longest run
+    running = [w for w in workouts if w.get("type") in RUNNING_TYPES]
+    if running:
+        longest = max(running, key=lambda w: w.get("distance_km", 0))
+        longest_km = longest["distance_km"]
+        longest_date = longest["date"]
+    else:
+        longest_km = 0
+        longest_date = None
+
+    # Bonus count
+    bonus = sum(1 for w in workouts if w.get("planned_week") is None)
+
+    pct = round(completed / elapsed * 100) if elapsed else 0
+
+    return {
+        "adherence_elapsed": elapsed,
+        "adherence_completed": completed,
+        "adherence_pct": pct,
+        "km_planned": planned_km,
+        "km_actual": km_actual,
+        "longest_run_km": longest_km,
+        "longest_run_date": longest_date,
+        "bonus_count": bonus,
+    }

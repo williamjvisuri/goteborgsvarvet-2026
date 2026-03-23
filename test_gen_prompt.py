@@ -1,6 +1,16 @@
 import json
+import pytest
 from pathlib import Path
 from gen_prompt import parse_rpe
+
+
+@pytest.fixture
+def sample_plan():
+    return json.loads((Path(__file__).parent / "plan.json").read_text())
+
+@pytest.fixture
+def sample_workouts():
+    return json.loads((Path(__file__).parent / "workouts.json").read_text())
 
 def test_parse_rpe_range():
     assert parse_rpe("3-4") == 3.5
@@ -43,3 +53,26 @@ def test_format_pace_even():
 
 def test_format_pace_zero_distance():
     assert format_pace(30, 0) is None
+
+
+from gen_prompt import calc_overall_stats
+
+def test_overall_stats_intro_week_complete(sample_plan, sample_workouts):
+    """With today=2026-03-23, intro week is fully elapsed (thu+sun passed)."""
+    stats = calc_overall_stats(sample_plan, sample_workouts, today=date(2026, 3, 23))
+    assert stats["adherence_completed"] == 2
+    assert stats["adherence_elapsed"] == 2
+    assert stats["adherence_pct"] == 100
+    assert stats["km_actual"] == 7.0  # 3.0 + 4.0
+    assert stats["km_planned"] == 7.0  # 3 + 4
+    assert stats["longest_run_km"] == 4.0
+    assert stats["longest_run_date"] == "2026-03-22"
+    assert stats["bonus_count"] == 1  # gym bonus
+
+def test_overall_stats_no_workouts(sample_plan):
+    stats = calc_overall_stats(sample_plan, [], today=date(2026, 3, 23))
+    assert stats["adherence_completed"] == 0
+    assert stats["adherence_elapsed"] == 2
+    assert stats["adherence_pct"] == 0
+    assert stats["km_actual"] == 0
+    assert stats["longest_run_km"] == 0
