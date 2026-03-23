@@ -209,3 +209,139 @@ def upcoming_sessions(plan, today=None):
                 })
     # No sort needed — weeks are chronological and day keys are mon-sun
     return results
+
+
+def current_week_info(plan, today=None):
+    """Find current week label and phase."""
+    if today is None:
+        today = date.today()
+    for week in plan["weeks"]:
+        start = session_date(week["start_date"], 0)
+        end = start + timedelta(days=6)
+        if start <= today <= end:
+            return week["label"], week["phase"]
+    return None, None
+
+
+def build_prompt(plan, workouts, free_question=None, today=None):
+    """Assemble the full prompt string."""
+    if today is None:
+        today = date.today()
+
+    race_date = date.fromisoformat(plan["race"]["date"])
+    days_left = (race_date - today).days
+    week_label, week_phase = current_week_info(plan, today)
+    overall = calc_overall_stats(plan, workouts, today)
+    weekly = calc_weekly_stats(plan, workouts, today)
+    trends = calc_trends(weekly)
+    gym = gym_summary(workouts)
+    upcoming = upcoming_sessions(plan, today)
+
+    lines = []
+
+    # 1. System role
+    lines.append("Du är en erfaren löpcoach. Nedan finns min träningsdata med förberäknad statistik.")
+    lines.append("Analysera hur det går och ge mig konkret feedback.\n")
+
+    # 2. Om mig
+    lines.append("## Om mig")
+    lines.append("- Nybörjarlöpare, första halvmaran")
+    lines.append("- Mål: jogga hela Göteborgsvarvet (21,1 km, 23 maj 2026) utan gångpauser")
+    lines.append("- Gymträning 2×/vecka parallellt med löpningen")
+    lines.append(f"- Dagens datum: {today}")
+    if week_label:
+        lines.append(f"- Aktuell vecka: {week_label} ({week_phase})")
+    lines.append(f"- Dagar till lopp: {days_left}\n")
+
+    # 3. Sammanfattning
+    lines.append("## Sammanfattning")
+    if not workouts:
+        lines.append("Inga loggade pass ännu.\n")
+    else:
+        lines.append(f"- Följsamhet: {overall['adherence_completed']}/{overall['adherence_elapsed']} planerade pass ({overall['adherence_pct']}%)")
+        lines.append(f"- Km löpt: {overall['km_actual']} av {overall['km_planned']} km planerat")
+        if overall["longest_run_km"]:
+            lines.append(f"- Längsta löppass: {overall['longest_run_km']} km ({overall['longest_run_date']}) — mål: 21,1 km")
+        if overall["bonus_count"]:
+            lines.append(f"- Bonuspass (utanför plan): {overall['bonus_count']}")
+        lines.append("")
+
+        # Per-week table
+        if weekly:
+            lines.append("### Per vecka")
+            lines.append("| Vecka | Fas | Pass | Km plan | Km faktisk | Tempo | RPE plan | RPE faktisk |")
+            lines.append("|-------|-----|------|---------|------------|-------|----------|-------------|")
+            for w in weekly:
+                lines.append(
+                    f"| {w['label']} | {w['phase']} | {w['sessions_done']}/{w['sessions_planned']} "
+                    f"| {w['km_planned']} | {w['km_actual']} | {w['pace'] or '—'} "
+                    f"| {w['rpe_planned'] or '—'} | {w['rpe_actual'] or '—'} |"
+                )
+            lines.append("")
+
+        # Trends
+        if trends:
+            lines.append("### Trender")
+            if trends["paces"]:
+                lines.append(f"- Tempo vecka för vecka: {', '.join(trends['paces'])} min/km")
+            if trends["rpe_deltas"]:
+                deltas = ", ".join(f"{d:+.1f}" for d in trends["rpe_deltas"])
+                lines.append(f"- RPE-delta (faktisk − planerad): {deltas}")
+            if trends["km_devs"]:
+                devs = ", ".join(f"{d:+d}%" for d in trends["km_devs"])
+                lines.append(f"- Km-avvikelse: {devs}")
+            lines.append("")
+
+        # Gym
+        if gym["count"]:
+            lines.append("### Gym")
+            lines.append(f"- Genomförda gympass: {gym['count']}")
+            for ex in gym["exercises"]:
+                lines.append(f"  - {ex}")
+            lines.append("")
+
+    # 4. Fri fråga
+    if free_question:
+        lines.append("## Min fråga (prioriterad)")
+        lines.append(f"{free_question}\n")
+
+    # 5. Kommande pass
+    if upcoming:
+        lines.append("## Kommande pass (nästa 7 dagar)")
+        for s in upcoming:
+            lines.append(f"- **{s['day']}**: {s['description']} ({s['type']})")
+        lines.append("")
+
+    # 6. Instruktioner
+    lines.append("## Vad jag vill ha")
+    if free_question:
+        lines.append("Adressera min fråga först, ge sedan den vanliga analysen.\n")
+    lines.append("1. **Följsamhet** — hur väl följer jag planen? Missade pass, avvikelser?")
+    lines.append("2. **Tempo/distans** — avviker mina faktiska resultat (km, tid, RPE) mycket från planen?")
+    lines.append("3. **Belastning** — ser du risk för överträning eller underträning?")
+    lines.append("4. **Rekommendation** — konkreta justeringar för kommande vecka, om några behövs.")
+    lines.append("5. **Gym** — kommentar på gympass om det finns loggade sådana.")
+    lines.append("\nSvara på svenska. Var rak och konkret — ingen fluff.\n")
+
+    # 7. Rådata
+    lines.append("## Rådata")
+    lines.append("<details><summary>plan.json</summary>\n")
+    lines.append("```json")
+    lines.append(json.dumps(plan, ensure_ascii=False, indent=2))
+    lines.append("```\n</details>\n")
+    lines.append("<details><summary>workouts.json</summary>\n")
+    lines.append("```json")
+    lines.append(json.dumps(workouts, ensure_ascii=False, indent=2))
+    lines.append("```\n</details>")
+
+    return "\n".join(lines)
+
+
+def main():
+    plan, workouts = load_data()
+    free_question = " ".join(sys.argv[1:]) if len(sys.argv) > 1 else None
+    print(build_prompt(plan, workouts, free_question))
+
+
+if __name__ == "__main__":
+    main()
