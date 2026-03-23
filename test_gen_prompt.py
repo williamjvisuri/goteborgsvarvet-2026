@@ -93,3 +93,25 @@ def test_weekly_stats_intro(sample_plan, sample_workouts):
     assert intro["pace"] is not None  # should have a pace string
     assert intro["rpe_planned"] is not None
     assert intro["rpe_actual"] is not None
+
+
+from gen_prompt import calc_trends, gym_summary, upcoming_sessions
+
+def test_trends_not_enough_data(sample_plan, sample_workouts):
+    """With only 1 week of data, trends should be None."""
+    weekly = calc_weekly_stats(sample_plan, sample_workouts, today=date(2026, 3, 23))
+    trends = calc_trends(weekly)
+    assert trends is None
+
+def test_gym_summary(sample_workouts):
+    gym = gym_summary(sample_workouts)
+    assert gym["count"] == 1
+    assert "Knäböj" in gym["exercises"][0]
+
+def test_upcoming_sessions(sample_plan):
+    upcoming = upcoming_sessions(sample_plan, today=date(2026, 3, 23))
+    # Today is Mon Mar 23 (v1 start). Next 7 days: Mar 23-29.
+    # v1 has: wed (running), thu (gym), sat (running), sun (long_run)
+    assert len(upcoming) == 4
+    assert upcoming[0]["day"] == "ons 25 mar"
+    assert upcoming[0]["type"] == "running"

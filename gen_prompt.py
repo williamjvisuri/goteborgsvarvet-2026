@@ -152,3 +152,60 @@ def calc_weekly_stats(plan, workouts, today=None):
             "rpe_actual": rpe_actual,
         })
     return results
+
+
+def calc_trends(weekly_stats):
+    """Compute trends from weekly stats. Returns None if < 2 weeks."""
+    if len(weekly_stats) < 2:
+        return None
+    paces = [w["pace"] for w in weekly_stats if w["pace"]]
+    rpe_deltas = []
+    km_devs = []
+    for w in weekly_stats:
+        if w["rpe_actual"] is not None and w["rpe_planned"] is not None:
+            rpe_deltas.append(round(w["rpe_actual"] - w["rpe_planned"], 1))
+        if w["km_planned"] > 0:
+            dev = round((w["km_actual"] - w["km_planned"]) / w["km_planned"] * 100)
+            km_devs.append(dev)
+    return {"paces": paces, "rpe_deltas": rpe_deltas, "km_devs": km_devs}
+
+
+def gym_summary(workouts):
+    """Summarize gym workouts. Returns dict with count and formatted exercises."""
+    gym_workouts = [w for w in workouts if w.get("type") == "gym"]
+    exercises = []
+    for w in gym_workouts:
+        for ex in w.get("exercises", []):
+            sets = ex.get("sets", [])
+            if not sets:
+                continue
+            reps = sets[0].get("reps", "?")
+            kg = sets[0].get("kg", "?")
+            exercises.append(f"{ex['name']}: {len(sets)}×{reps} @ {kg} kg")
+    return {"count": len(gym_workouts), "exercises": exercises}
+
+
+def upcoming_sessions(plan, today=None):
+    """Extract planned sessions for the next 7 days."""
+    if today is None:
+        today = date.today()
+    end = today + timedelta(days=6)
+    sv_days = {"mon": "mån", "tue": "tis", "wed": "ons", "thu": "tor", "fri": "fre", "sat": "lör", "sun": "sön"}
+    sv_months = {1: "jan", 2: "feb", 3: "mar", 4: "apr", 5: "maj", 6: "jun",
+                 7: "jul", 8: "aug", 9: "sep", 10: "okt", 11: "nov", 12: "dec"}
+    results = []
+    for week in plan["weeks"]:
+        for idx, key in enumerate(DAY_KEYS):
+            day = week["days"].get(key)
+            if not day or day.get("type") == "rest":
+                continue
+            d = session_date(week["start_date"], idx)
+            if today <= d <= end:
+                label = f"{sv_days[key]} {d.day} {sv_months[d.month]}"
+                results.append({
+                    "day": label,
+                    "type": day["type"],
+                    "description": day.get("description", ""),
+                })
+    # No sort needed — weeks are chronological and day keys are mon-sun
+    return results
