@@ -69,5 +69,15 @@
     "duration_min": 22,
     "rpe": 5,
     "note": "Trollhättan Running"
+  },
+  {
+    "date": "2026-03-22",
+    "planned_week": "intro",
+    "planned_day": "sun",
+    "type": "long_run",
+    "distance_km": 4,
+    "duration_min": 28,
+    "rpe": 4,
+    "note": "gick bra. tungt i mitten, lätt avslutning."
   }
 ]
