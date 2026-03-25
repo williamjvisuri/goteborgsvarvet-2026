@@ -535,6 +535,19 @@ def build_prompt(plan, workouts, free_question=None, today=None):
             lines.extend(hr_zone_lines)
             lines.append("")
 
+        # Split analysis for long runs and tempo
+        split_lines = []
+        for s_wo in workouts:
+            if s_wo.get("type") not in ("long_run", "tempo"):
+                continue
+            splits_str = format_splits(s_wo.get("splits"))
+            if splits_str:
+                split_lines.append(f"- {s_wo['date']} ({s_wo['type']}): {splits_str}")
+        if split_lines:
+            lines.append("### Splitanalys (långpass & tempo)")
+            lines.extend(split_lines)
+            lines.append("")
+
         # Long run progression (#4)
         if lr_prog:
             items = []
