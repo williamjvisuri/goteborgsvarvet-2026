@@ -522,6 +522,19 @@ def build_prompt(plan, workouts, free_question=None, today=None):
                 )
             lines.append("")
 
+        # HR zone distribution per session
+        hr_zone_lines = []
+        for s_wo in workouts:
+            if s_wo.get("type") not in RUNNING_TYPES:
+                continue
+            zones_str = format_hr_zones(s_wo.get("hr_zones"))
+            if zones_str:
+                hr_zone_lines.append(f"- {s_wo['date']}: {zones_str}")
+        if hr_zone_lines:
+            lines.append("### Pulszoner per pass")
+            lines.extend(hr_zone_lines)
+            lines.append("")
+
         # Long run progression (#4)
         if lr_prog:
             items = []
