@@ -5,3 +5,5 @@ docs/
 .garmin-session/
 .venv/
 .env
+__pycache__/
+CLAUDE.md
