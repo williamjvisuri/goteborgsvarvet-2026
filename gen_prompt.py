@@ -87,6 +87,17 @@ def format_splits(splits):
     return " | ".join(parts)
 
 
+def load_race_predictions():
+    """Load race_predictions.json if it exists. Returns dict or None."""
+    path = HERE / "race_predictions.json"
+    if not path.exists():
+        return None
+    try:
+        return json.loads(path.read_text())
+    except (json.JSONDecodeError, OSError):
+        return None
+
+
 def calc_overall_stats(plan, workouts, today=None):
     """Calculate overall adherence, km, longest run, bonus count."""
     if today is None:
@@ -453,6 +464,7 @@ def build_prompt(plan, workouts, free_question=None, today=None):
     lr_prog = long_run_progression(plan, workouts)
     macro = macro_overview(plan)
     est_finish = estimated_finish(workouts)
+    race_pred = load_race_predictions()
 
     sv_weekdays = ["måndag", "tisdag", "onsdag", "torsdag", "fredag", "lördag", "söndag"]
 
@@ -484,6 +496,8 @@ def build_prompt(plan, workouts, free_question=None, today=None):
             lines.append(f"- Längsta löppass: {overall['longest_run_km']} km ({overall['longest_run_date']}) — mål: 21,1 km")
         if est_finish:
             lines.append(f"- Prognos sluttid vid nuvarande tempo: {est_finish} (osäkert, baserat på {overall['km_actual']} km data)")
+        if race_pred:
+            lines.append(f"- Garmin loppprognos (halvmaraton): {race_pred['half_marathon_formatted']} (hämtad {race_pred['fetched']})")
         if overall["bonus_count"]:
             lines.append(f"- Bonuspass (utanför plan): {overall['bonus_count']}")
         lines.append("")
