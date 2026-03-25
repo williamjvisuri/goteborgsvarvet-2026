@@ -10,6 +10,7 @@ import json
 import os
 import subprocess
 import sys
+import time
 from datetime import date, datetime, timedelta
 from pathlib import Path
 
@@ -22,6 +23,19 @@ PLAN_FILE = SCRIPT_DIR / "plan.json"
 
 # Maps Python weekday() (0=Monday) to plan.json day keys
 WEEKDAY_TO_KEY = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"]
+
+
+def format_pace_from_speed(speed_ms):
+    """Convert m/s to 'M:SS' min/km pace. Returns None if speed is zero/None."""
+    if not speed_ms:
+        return None
+    pace = (1000 / speed_ms) / 60
+    mins = int(pace)
+    secs = int(round((pace - mins) * 60))
+    if secs == 60:
+        mins += 1
+        secs = 0
+    return f"{mins}:{secs:02d}"
 
 
 def estimate_rpe(avg_hr):
@@ -76,39 +90,75 @@ def build_dedup_set(workouts):
 
 def garmin_activity_to_entry(activity, plan):
     """Konverterar ett Garmin-aktivitetsobjekt till ett workouts.json-inlägg."""
-    # Datum
     start_time = activity.get("startTimeLocal", "")
     activity_date = start_time[:10] if start_time else None
     if not activity_date:
         return None
 
-    # Distans och tid
     distance_m = activity.get("distance") or 0
     distance_km = round(distance_m / 1000, 1)
 
     duration_s = activity.get("duration") or 0
     duration_min = round(duration_s / 60)
 
-    # Puls → RPE
     avg_hr = activity.get("averageHR")
     rpe = estimate_rpe(avg_hr)
 
-    # Planmatchning
     planned_week, planned_day, plan_type = match_plan(activity_date, plan)
-
-    # Typ: använd planens typ om vi matchade ett löppass, annars "running"
     activity_type = plan_type if plan_type in RUNNING_TYPES else "running"
 
     note = activity.get("activityName", "")
+
+    # Enriched fields from activity summary
+    max_hr = activity.get("maxHR")
+    avg_speed = activity.get("averageSpeed")
+    avg_pace = format_pace_from_speed(avg_speed)
+    avg_cadence = activity.get("averageRunningCadenceInStepsPerMinute")
+    if avg_cadence is not None:
+        avg_cadence = round(avg_cadence)
+    max_cadence = activity.get("maxRunningCadenceInStepsPerMinute")
+    if max_cadence is not None:
+        max_cadence = round(max_cadence)
+    elevation_gain = activity.get("elevationGain")
+    if elevation_gain is not None:
+        elevation_gain = round(elevation_gain)
+    elevation_loss = activity.get("elevationLoss")
+    if elevation_loss is not None:
+        elevation_loss = round(elevation_loss)
+    aerobic_te = activity.get("aerobicTrainingEffect")
+    anaerobic_te = activity.get("anaerobicTrainingEffect")
+    training_load = activity.get("activityTrainingLoad")
+    if training_load is not None:
+        training_load = round(training_load)
+    vo2max = activity.get("vO2MaxValue")
+    calories = activity.get("calories")
+    if calories is not None:
+        calories = round(calories)
+    activity_id = activity.get("activityId")
 
     return {
         "date": activity_date,
         "planned_week": planned_week,
         "planned_day": planned_day,
         "type": activity_type,
+        "activity_id": activity_id,
         "distance_km": distance_km,
         "duration_min": duration_min,
         "rpe": rpe,
+        "avg_hr": round(avg_hr) if avg_hr is not None else None,
+        "max_hr": round(max_hr) if max_hr is not None else None,
+        "avg_pace": avg_pace,
+        "avg_cadence": avg_cadence,
+        "max_cadence": max_cadence,
+        "elevation_gain": elevation_gain,
+        "elevation_loss": elevation_loss,
+        "aerobic_te": aerobic_te,
+        "anaerobic_te": anaerobic_te,
+        "training_load": training_load,
+        "vo2max": vo2max,
+        "calories": calories,
+        "hr_zones": None,
+        "splits": None,
         "note": note,
     }
 
