@@ -179,6 +179,16 @@ def calc_weekly_stats(plan, workouts, today=None):
         rpe_planned = round(sum(rpe_planned_vals) / len(rpe_planned_vals), 1) if rpe_planned_vals else None
         rpe_actual = round(sum(rpe_actual_vals) / len(rpe_actual_vals), 1) if rpe_actual_vals else None
 
+        # Enriched averages
+        hr_vals = [w["avg_hr"] for w in run_workouts if w.get("avg_hr") is not None]
+        avg_hr = round(sum(hr_vals) / len(hr_vals)) if hr_vals else None
+
+        cadence_vals = [w["avg_cadence"] for w in run_workouts if w.get("avg_cadence") is not None]
+        avg_cadence = round(sum(cadence_vals) / len(cadence_vals)) if cadence_vals else None
+
+        te_vals = [w["aerobic_te"] for w in run_workouts if w.get("aerobic_te") is not None]
+        avg_te = round(sum(te_vals) / len(te_vals), 1) if te_vals else None
+
         results.append({
             "id": week_id,
             "label": week["label"],
@@ -190,6 +200,9 @@ def calc_weekly_stats(plan, workouts, today=None):
             "pace": pace,
             "rpe_planned": rpe_planned,
             "rpe_actual": rpe_actual,
+            "avg_hr": avg_hr,
+            "avg_cadence": avg_cadence,
+            "avg_te": avg_te,
         })
     return results
 
@@ -467,8 +480,8 @@ def build_prompt(plan, workouts, free_question=None, today=None):
         if weekly:
             lines.append("### Per vecka")
             # Add km change % column
-            lines.append("| Vecka | Fas | Pass | Km plan | Km faktisk | Δ km% | Tempo | RPE plan → faktisk |")
-            lines.append("|-------|-----|------|---------|------------|-------|-------|-------------------|")
+            lines.append("| Vecka | Fas | Pass | Km plan | Km faktisk | Δ km% | Tempo | Snitt HR | Kadans | TE | RPE plan → faktisk |")
+            lines.append("|-------|-----|------|---------|------------|-------|-------|----------|--------|----|--------------------|")
             prev_km = None
             for w in weekly:
                 if prev_km and prev_km > 0:
@@ -478,6 +491,7 @@ def build_prompt(plan, workouts, free_question=None, today=None):
                 lines.append(
                     f"| {w['label']} | {w['phase']} | {w['sessions_done']}/{w['sessions_planned']} "
                     f"| {w['km_planned']} | {w['km_actual']} | {km_change} | {w['pace'] or '—'} "
+                    f"| {w['avg_hr'] or '—'} | {w['avg_cadence'] or '—'} | {w['avg_te'] or '—'} "
                     f"| {w['rpe_planned'] or '—'} → {w['rpe_actual'] or '—'} |"
                 )
                 prev_km = w["km_planned"]
