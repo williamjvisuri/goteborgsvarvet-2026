@@ -127,7 +127,11 @@ def garmin_activity_to_entry(activity, plan):
     if elevation_loss is not None:
         elevation_loss = round(elevation_loss)
     aerobic_te = activity.get("aerobicTrainingEffect")
+    if aerobic_te is not None:
+        aerobic_te = round(aerobic_te, 1)
     anaerobic_te = activity.get("anaerobicTrainingEffect")
+    if anaerobic_te is not None:
+        anaerobic_te = round(anaerobic_te, 1)
     training_load = activity.get("activityTrainingLoad")
     if training_load is not None:
         training_load = round(training_load)

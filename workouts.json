@@ -9,25 +9,52 @@
       {
         "name": "Knäböj",
         "sets": [
-          {"reps": 10, "kg": 40},
-          {"reps": 10, "kg": 40},
-          {"reps": 10, "kg": 40}
+          {
+            "reps": 10,
+            "kg": 40
+          },
+          {
+            "reps": 10,
+            "kg": 40
+          },
+          {
+            "reps": 10,
+            "kg": 40
+          }
         ]
       },
       {
         "name": "Skivstångsrodd",
         "sets": [
-          {"reps": 8, "kg": 40},
-          {"reps": 8, "kg": 40},
-          {"reps": 8, "kg": 40}
+          {
+            "reps": 8,
+            "kg": 40
+          },
+          {
+            "reps": 8,
+            "kg": 40
+          },
+          {
+            "reps": 8,
+            "kg": 40
+          }
         ]
       },
       {
         "name": "Tåhävningar",
         "sets": [
-          {"reps": 12, "kg": 84},
-          {"reps": 12, "kg": 84},
-          {"reps": 12, "kg": 84}
+          {
+            "reps": 12,
+            "kg": 84
+          },
+          {
+            "reps": 12,
+            "kg": 84
+          },
+          {
+            "reps": 12,
+            "kg": 84
+          }
         ]
       }
     ],
@@ -42,5 +69,139 @@
     "duration_min": 28,
     "rpe": 4,
     "note": "gick bra. tungt i mitten, lätt avslutning."
+  },
+  {
+    "date": "2026-03-19",
+    "planned_week": "intro",
+    "planned_day": "thu",
+    "type": "running",
+    "activity_id": 22228072017,
+    "distance_km": 3.0,
+    "duration_min": 22,
+    "rpe": 5,
+    "avg_hr": 159,
+    "max_hr": 181,
+    "avg_pace": "7:24",
+    "avg_cadence": 150,
+    "max_cadence": 157,
+    "elevation_gain": 15,
+    "elevation_loss": 102,
+    "aerobic_te": 3.3,
+    "anaerobic_te": 0.0,
+    "training_load": 50,
+    "vo2max": 40.0,
+    "calories": 242,
+    "hr_zones": [
+      {
+        "zone": 1,
+        "seconds": 9
+      },
+      {
+        "zone": 2,
+        "seconds": 118
+      },
+      {
+        "zone": 3,
+        "seconds": 607
+      },
+      {
+        "zone": 4,
+        "seconds": 608
+      },
+      {
+        "zone": 5,
+        "seconds": 0
+      }
+    ],
+    "splits": [
+      {
+        "km": 1,
+        "pace": "7:42",
+        "avg_hr": 147
+      },
+      {
+        "km": 2,
+        "pace": "7:24",
+        "avg_hr": 161
+      },
+      {
+        "km": 3,
+        "pace": "7:06",
+        "avg_hr": 170
+      },
+      {
+        "km": 4,
+        "pace": "7:36",
+        "avg_hr": 180
+      }
+    ],
+    "note": "Trollhättan Running"
+  },
+  {
+    "date": "2026-03-25",
+    "planned_week": "v1",
+    "planned_day": "wed",
+    "type": "running",
+    "activity_id": 22297840917,
+    "distance_km": 3.5,
+    "duration_min": 26,
+    "rpe": 6,
+    "avg_hr": 164,
+    "max_hr": 175,
+    "avg_pace": "7:25",
+    "avg_cadence": 160,
+    "max_cadence": 170,
+    "elevation_gain": 19,
+    "elevation_loss": 15,
+    "aerobic_te": 3.1,
+    "anaerobic_te": 0.0,
+    "training_load": 44,
+    "vo2max": 40.0,
+    "calories": 274,
+    "hr_zones": [
+      {
+        "zone": 1,
+        "seconds": 0
+      },
+      {
+        "zone": 2,
+        "seconds": 28
+      },
+      {
+        "zone": 3,
+        "seconds": 410
+      },
+      {
+        "zone": 4,
+        "seconds": 1136
+      },
+      {
+        "zone": 5,
+        "seconds": 0
+      }
+    ],
+    "splits": [
+      {
+        "km": 1,
+        "pace": "6:28",
+        "avg_hr": 158
+      },
+      {
+        "km": 2,
+        "pace": "7:43",
+        "avg_hr": 164
+      },
+      {
+        "km": 3,
+        "pace": "7:51",
+        "avg_hr": 168
+      },
+      {
+        "km": 4,
+        "pace": "7:49",
+        "avg_hr": 167
+      }
+    ],
+    "note": "Gothenburg Running"
   }
 ]
