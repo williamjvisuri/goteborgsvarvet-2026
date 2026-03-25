@@ -324,22 +324,30 @@ def fetch_and_save_race_predictions(client):
 
 def print_summary(new_entries):
     """Skriver ut en sammanfattning av nya pass."""
-    print(f"\n{'─'*50}")
+    print(f"\n{'─'*60}")
     print(f"  Hittade {len(new_entries)} nytt/nya löppass att importera:")
-    print(f"{'─'*50}")
+    print(f"{'─'*60}")
     for i, e in enumerate(new_entries, 1):
         plan_info = ""
         if e["planned_week"]:
             plan_info = f"  → Planerat: {e['planned_week']} / {e['planned_day']}"
         rpe_str = str(e["rpe"]) if e["rpe"] is not None else "–"
+        hr_str = f"HR {e['avg_hr']}/{e['max_hr']}" if e.get("avg_hr") else ""
+        cadence_str = f"Kadans {e['avg_cadence']}" if e.get("avg_cadence") else ""
+        te_str = f"TE {e['aerobic_te']}" if e.get("aerobic_te") else ""
+        details = "  ".join(s for s in [hr_str, cadence_str, te_str] if s)
         print(
             f"\n  {i}. {e['date']}  {e['type'].upper()}  "
             f"{e['distance_km']} km  {e['duration_min']} min  RPE {rpe_str}"
         )
+        if e.get("avg_pace"):
+            print(f"     Tempo: {e['avg_pace']} min/km")
+        if details:
+            print(f"     {details}")
         print(f"     \"{e['note']}\"")
         if plan_info:
             print(f"     {plan_info}")
-    print(f"\n{'─'*50}")
+    print(f"\n{'─'*60}")
 
 
 def ask_confirmation():
