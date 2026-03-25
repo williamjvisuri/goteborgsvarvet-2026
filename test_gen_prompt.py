@@ -95,6 +95,72 @@ def test_weekly_stats_intro(sample_plan, sample_workouts):
     assert intro["rpe_actual"] is not None
 
 
+from gen_prompt import format_pace_from_speed
+
+def test_format_pace_from_speed():
+    # 2.27 m/s = 1000/2.27/60 = 7.342 min/km = 7:21
+    assert format_pace_from_speed(2.27) == "7:21"
+
+def test_format_pace_from_speed_fast():
+    # 3.33 m/s = 1000/3.33/60 = 5.005 min/km = 5:00
+    assert format_pace_from_speed(3.33) == "5:00"
+
+def test_format_pace_from_speed_zero():
+    assert format_pace_from_speed(0) is None
+
+def test_format_pace_from_speed_none():
+    assert format_pace_from_speed(None) is None
+
+
+from gen_prompt import format_hr_zones
+
+def test_format_hr_zones():
+    zones = [
+        {"zone": 1, "seconds": 300},
+        {"zone": 2, "seconds": 600},
+        {"zone": 3, "seconds": 300},
+        {"zone": 4, "seconds": 0},
+        {"zone": 5, "seconds": 0},
+    ]
+    assert format_hr_zones(zones) == "Z1:25% Z2:50% Z3:25%"
+
+def test_format_hr_zones_none():
+    assert format_hr_zones(None) is None
+
+def test_format_hr_zones_empty():
+    assert format_hr_zones([]) is None
+
+def test_format_hr_zones_all_zero():
+    zones = [{"zone": 1, "seconds": 0}, {"zone": 2, "seconds": 0}]
+    assert format_hr_zones(zones) is None
+
+
+from gen_prompt import format_splits
+
+def test_format_splits():
+    splits = [
+        {"km": 1, "pace": "7:15", "avg_hr": 138},
+        {"km": 2, "pace": "7:25", "avg_hr": 145},
+        {"km": 3, "pace": "7:18", "avg_hr": 148},
+    ]
+    result = format_splits(splits)
+    assert "Km 1: 7:15 (138 bpm)" in result
+    assert "Km 2: 7:25 (145 bpm)" in result
+    assert "Km 3: 7:18 (148 bpm)" in result
+
+def test_format_splits_none():
+    assert format_splits(None) is None
+
+def test_format_splits_empty():
+    assert format_splits([]) is None
+
+def test_format_splits_missing_hr():
+    splits = [{"km": 1, "pace": "7:15", "avg_hr": None}]
+    result = format_splits(splits)
+    assert "Km 1: 7:15" in result
+    assert "bpm" not in result
+
+
 from gen_prompt import calc_trends, gym_summary, upcoming_sessions
 
 def test_trends_not_enough_data(sample_plan, sample_workouts):

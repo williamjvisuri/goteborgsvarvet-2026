@@ -48,6 +48,45 @@ def format_pace(duration_min, distance_km):
     return f"{mins}:{secs:02d}"
 
 
+def format_pace_from_speed(speed_ms):
+    """Convert m/s to 'M:SS' min/km pace. Returns None if speed is zero/None."""
+    if not speed_ms:
+        return None
+    pace = (1000 / speed_ms) / 60
+    mins = int(pace)
+    secs = int(round((pace - mins) * 60))
+    if secs == 60:
+        mins += 1
+        secs = 0
+    return f"{mins}:{secs:02d}"
+
+
+def format_hr_zones(hr_zones):
+    """Format HR zones as compact string like 'Z1:25% Z2:50% Z3:25%'. Omits 0% zones."""
+    if not hr_zones:
+        return None
+    total = sum(z["seconds"] for z in hr_zones)
+    if total == 0:
+        return None
+    parts = []
+    for z in hr_zones:
+        pct = round(z["seconds"] / total * 100)
+        if pct > 0:
+            parts.append(f"Z{z['zone']}:{pct}%")
+    return " ".join(parts) if parts else None
+
+
+def format_splits(splits):
+    """Format splits as compact string. Returns None if no splits."""
+    if not splits:
+        return None
+    parts = []
+    for s in splits:
+        hr_str = f" ({s['avg_hr']} bpm)" if s.get("avg_hr") else ""
+        parts.append(f"Km {s['km']}: {s['pace']}{hr_str}")
+    return " | ".join(parts)
+
+
 def calc_overall_stats(plan, workouts, today=None):
     """Calculate overall adherence, km, longest run, bonus count."""
     if today is None:
