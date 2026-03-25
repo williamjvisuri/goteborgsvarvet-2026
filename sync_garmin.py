@@ -20,6 +20,7 @@ GARMIN_RUNNING_TYPES = {"running", "trail_running"}
 SCRIPT_DIR = Path(__file__).parent.resolve()
 WORKOUTS_FILE = SCRIPT_DIR / "workouts.json"
 PLAN_FILE = SCRIPT_DIR / "plan.json"
+RACE_PREDICTIONS_FILE = SCRIPT_DIR / "race_predictions.json"
 
 # Maps Python weekday() (0=Monday) to plan.json day keys
 WEEKDAY_TO_KEY = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"]
@@ -288,6 +289,39 @@ def enrich_entry_details(client, entry):
     entry["splits"] = fetch_splits(client, activity_id)
 
 
+def fetch_and_save_race_predictions(client):
+    """Hämtar och sparar loppprognos från Garmin. Skriver race_predictions.json."""
+    try:
+        predictions = client.get_race_predictions()
+        if not predictions:
+            return
+        # Find half marathon prediction
+        hm_seconds = None
+        for p in predictions:
+            distance = p.get("raceDistanceInMeters") or p.get("racePredictionDistance")
+            if distance and abs(distance - 21097.5) < 500:
+                hm_seconds = p.get("raceTimeInSeconds") or p.get("racePredictionTime")
+                break
+        if hm_seconds is None:
+            return
+        hm_seconds = round(hm_seconds)
+        hours = hm_seconds // 3600
+        mins = (hm_seconds % 3600) // 60
+        secs = hm_seconds % 60
+        formatted = f"{hours}:{mins:02d}:{secs:02d}"
+        data = {
+            "fetched": date.today().isoformat(),
+            "half_marathon_seconds": hm_seconds,
+            "half_marathon_formatted": formatted,
+        }
+        with open(RACE_PREDICTIONS_FILE, "w", encoding="utf-8") as f:
+            json.dump(data, f, ensure_ascii=False, indent=2)
+            f.write("\n")
+        print(f"Loppprognos uppdaterad: Halvmaraton {formatted}")
+    except Exception:
+        pass
+
+
 def print_summary(new_entries):
     """Skriver ut en sammanfattning av nya pass."""
     print(f"\n{'─'*50}")
@@ -326,7 +360,7 @@ def git_push(new_entries):
     commit_msg = f"Lägg till {count} löppass från Garmin ({dates})"
 
     cmds = [
-        ["git", "-C", str(SCRIPT_DIR), "add", "workouts.json"],
+        ["git", "-C", str(SCRIPT_DIR), "add", "workouts.json", "race_predictions.json"],
         ["git", "-C", str(SCRIPT_DIR), "commit", "-m", commit_msg],
         ["git", "-C", str(SCRIPT_DIR), "push"],
     ]
@@ -482,6 +516,9 @@ def main():
     except OSError as e:
         print(f"Fel: Kunde inte skriva till {WORKOUTS_FILE}: {e}", file=sys.stderr)
         sys.exit(1)
+
+    # Hämta loppprognos
+    fetch_and_save_race_predictions(client)
 
     # Git push eller instruktioner
     if args.push:
