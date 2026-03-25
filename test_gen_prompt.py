@@ -58,12 +58,12 @@ def test_format_pace_zero_distance():
 from gen_prompt import calc_overall_stats
 
 def test_overall_stats_intro_week_complete(sample_plan, sample_workouts):
-    """With today=2026-03-23, intro week is fully elapsed (thu+sun passed)."""
+    """With today=2026-03-23, intro week has 2 elapsed planned sessions but only 1 running completed."""
     stats = calc_overall_stats(sample_plan, sample_workouts, today=date(2026, 3, 23))
-    assert stats["adherence_completed"] == 2
+    assert stats["adherence_completed"] == 1  # only long_run has planned_week set
     assert stats["adherence_elapsed"] == 2
-    assert stats["adherence_pct"] == 100
-    assert stats["km_actual"] == 7.0  # 3.0 + 4.0
+    assert stats["adherence_pct"] == 50
+    assert stats["km_actual"] == 4.0  # only 4 km long run
     assert stats["km_planned"] == 7.0  # 3 + 4
     assert stats["longest_run_km"] == 4.0
     assert stats["longest_run_date"] == "2026-03-22"
@@ -81,16 +81,16 @@ def test_overall_stats_no_workouts(sample_plan):
 from gen_prompt import calc_weekly_stats
 
 def test_weekly_stats_intro(sample_plan, sample_workouts):
-    """Intro week should show 2/2 sessions, correct km, pace, RPE."""
+    """Intro week should show 1/2 sessions after removing synced run."""
     weeks = calc_weekly_stats(sample_plan, sample_workouts, today=date(2026, 3, 23))
     assert len(weeks) == 1  # only intro is elapsed
     intro = weeks[0]
     assert intro["label"] == "Introvecka"
-    assert intro["sessions_done"] == 2
+    assert intro["sessions_done"] == 1  # only long_run
     assert intro["sessions_planned"] == 2
     assert intro["km_planned"] == 7.0
-    assert intro["km_actual"] == 7.0
-    assert intro["pace"] is not None  # should have a pace string
+    assert intro["km_actual"] == 4.0
+    assert intro["pace"] is not None
     assert intro["rpe_planned"] is not None
     assert intro["rpe_actual"] is not None
 
