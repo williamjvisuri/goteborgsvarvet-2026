@@ -9,66 +9,29 @@
       {
         "name": "Knäböj",
         "sets": [
-          {
-            "reps": 10,
-            "kg": 40
-          },
-          {
-            "reps": 10,
-            "kg": 40
-          },
-          {
-            "reps": 10,
-            "kg": 40
-          }
+          {"reps": 10, "kg": 40},
+          {"reps": 10, "kg": 40},
+          {"reps": 10, "kg": 40}
         ]
       },
       {
         "name": "Skivstångsrodd",
         "sets": [
-          {
-            "reps": 8,
-            "kg": 40
-          },
-          {
-            "reps": 8,
-            "kg": 40
-          },
-          {
-            "reps": 8,
-            "kg": 40
-          }
+          {"reps": 8, "kg": 40},
+          {"reps": 8, "kg": 40},
+          {"reps": 8, "kg": 40}
         ]
       },
       {
         "name": "Tåhävningar",
         "sets": [
-          {
-            "reps": 12,
-            "kg": 84
-          },
-          {
-            "reps": 12,
-            "kg": 84
-          },
-          {
-            "reps": 12,
-            "kg": 84
-          }
+          {"reps": 12, "kg": 84},
+          {"reps": 12, "kg": 84},
+          {"reps": 12, "kg": 84}
         ]
       }
     ],
     "note": ""
-  },
-  {
-    "date": "2026-03-19",
-    "planned_week": "intro",
-    "planned_day": "thu",
-    "type": "running",
-    "distance_km": 3.0,
-    "duration_min": 22,
-    "rpe": 5,
-    "note": "Trollhättan Running"
   },
   {
     "date": "2026-03-22",
