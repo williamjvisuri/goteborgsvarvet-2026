@@ -240,6 +240,54 @@ def filter_running(activities):
     return result
 
 
+def fetch_hr_zones(client, activity_id):
+    """Hämtar HR-zoner för en aktivitet. Returnerar lista eller None vid fel."""
+    try:
+        data = client.get_activity_hr_in_timezones(activity_id)
+        if not data:
+            return None
+        zones = []
+        for z in data:
+            zones.append({
+                "zone": z.get("zoneNumber"),
+                "seconds": round(z.get("secsInZone", 0)),
+            })
+        return zones if zones else None
+    except Exception:
+        return None
+
+
+def fetch_splits(client, activity_id):
+    """Hämtar per-km splits för en aktivitet. Returnerar lista eller None vid fel."""
+    try:
+        data = client.get_activity_splits(activity_id)
+        laps = data.get("lapDTOs", []) if isinstance(data, dict) else []
+        if not laps:
+            return None
+        splits = []
+        for i, lap in enumerate(laps, 1):
+            avg_speed = lap.get("averageSpeed")
+            pace = format_pace_from_speed(avg_speed)
+            avg_hr = lap.get("averageHR")
+            splits.append({
+                "km": i,
+                "pace": pace,
+                "avg_hr": round(avg_hr) if avg_hr is not None else None,
+            })
+        return splits if splits else None
+    except Exception:
+        return None
+
+
+def enrich_entry_details(client, entry):
+    """Hämtar HR-zoner och splits för en entry. Modifierar entry in-place."""
+    activity_id = entry.get("activity_id")
+    if not activity_id:
+        return
+    entry["hr_zones"] = fetch_hr_zones(client, activity_id)
+    entry["splits"] = fetch_splits(client, activity_id)
+
+
 def print_summary(new_entries):
     """Skriver ut en sammanfattning av nya pass."""
     print(f"\n{'─'*50}")
@@ -404,6 +452,13 @@ def main():
     if not new_entries:
         print(f"\nInga nya löppass hittade de senaste {args.days} dagarna.")
         sys.exit(0)
+
+    # Hämta detaljdata (HR-zoner, splits) per aktivitet
+    print(f"Hämtar detaljdata för {len(new_entries)} aktivitet(er)...")
+    for i, entry in enumerate(new_entries):
+        enrich_entry_details(client, entry)
+        if i < len(new_entries) - 1:
+            time.sleep(1)
 
     # Visa sammanfattning och fråga
     print_summary(new_entries)
