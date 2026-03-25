@@ -308,12 +308,18 @@ def individual_sessions(plan, workouts, today=None):
                 pace = format_pace(wo.get("duration_min", 0), actual_km) if wo.get("type") in RUNNING_TYPES else "—"
                 note = wo.get("note", "")
                 status = "Done"
+                avg_hr = wo.get("avg_hr", "—")
+                cadence = wo.get("avg_cadence", "—")
+                elev = wo.get("elevation_gain", "—")
             else:
                 actual_km = "—"
                 actual_rpe = "—"
                 pace = "—"
                 note = ""
                 status = "MISSED"
+                avg_hr = "—"
+                cadence = "—"
+                elev = "—"
             rows.append({
                 "date": f"{d.day} {sv_months[d.month]}",
                 "week": week["label"],
@@ -325,6 +331,9 @@ def individual_sessions(plan, workouts, today=None):
                 "pace": pace,
                 "note": note,
                 "status": status,
+                "avg_hr": avg_hr,
+                "cadence": cadence,
+                "elevation_gain": elev,
             })
 
     # Bonus workouts
@@ -345,6 +354,9 @@ def individual_sessions(plan, workouts, today=None):
             "pace": format_pace(w.get("duration_min", 0), w.get("distance_km", 0)) or "—" if w.get("type") in RUNNING_TYPES else "—",
             "note": w.get("note", ""),
             "status": "Bonus",
+            "avg_hr": w.get("avg_hr", "—"),
+            "cadence": w.get("avg_cadence", "—"),
+            "elevation_gain": w.get("elevation_gain", "—"),
         })
     return rows
 
@@ -500,12 +512,13 @@ def build_prompt(plan, workouts, free_question=None, today=None):
         # Individual sessions table (#1 + #3)
         if sessions:
             lines.append("### Alla pass (detalj)")
-            lines.append("| Datum | Vecka | Typ | Km plan | Km faktisk | RPE plan → faktisk | Tempo | Status | Anteckning |")
-            lines.append("|-------|-------|-----|---------|------------|-------------------|-------|--------|------------|")
+            lines.append("| Datum | Vecka | Typ | Km plan | Km faktisk | RPE plan → faktisk | Tempo | HR | Kadans | Höjdm | Status | Anteckning |")
+            lines.append("|-------|-------|-----|---------|------------|-------------------|-------|----|--------|-------|--------|------------|")
             for s in sessions:
                 lines.append(
                     f"| {s['date']} | {s['week']} | {s['type']} | {s['plan_km']} | {s['actual_km']} "
-                    f"| {s['plan_rpe']} → {s['actual_rpe']} | {s['pace']} | {s['status']} | {s['note']} |"
+                    f"| {s['plan_rpe']} → {s['actual_rpe']} | {s['pace']} | {s['avg_hr']} | {s['cadence']} | {s['elevation_gain']} "
+                    f"| {s['status']} | {s['note']} |"
                 )
             lines.append("")
 
