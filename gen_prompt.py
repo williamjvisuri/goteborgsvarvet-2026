@@ -619,6 +619,7 @@ def build_prompt(plan, workouts, free_question=None, today=None):
     lines.append("3. **Belastning** — ser du risk för överträning eller underträning? Notera km-ökning mellan veckor.")
     lines.append("4. **Rekommendation** — konkreta justeringar för kommande vecka, om några behövs.")
     lines.append("5. **Gym** — kommentar på gympass om det finns loggade sådana.")
+    lines.append("6. **Pulsanalys** — kommentera pulszoner och kadans om data finns. Varnas om lätta pass har för mycket tid i zon 4+.")
     lines.append("\nSvara på svenska. Var rak och konkret — ingen fluff.\n")
 
     # 7. Rådata
