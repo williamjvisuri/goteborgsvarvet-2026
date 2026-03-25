@@ -6,7 +6,7 @@ Enrich synced Garmin data with heart rate, cadence, pace, elevation, training ef
 
 `sync_garmin.py` currently captures only distance, duration, averageHR (discarded after RPE estimation), and activity name. The Garmin Connect API returns far more per activity, and detail endpoints provide HR zones and split data. This data would let the coaching prompt give much richer feedback.
 
-Only 2 runs and 1 gym session are currently logged. Clear `workouts.json` back to `[]` and re-sync to get enriched data for all runs. The gym entry was manually logged via `log.sh` and will need to be re-added manually.
+Only 3 entries are currently logged. The first run (2026-03-19, 3.0 km) was synced from Garmin — remove it and re-sync to get enriched data. The gym session (2026-03-21) and second run (2026-03-22, 4 km long run) were manually logged and should be kept as-is (they won't have the new Garmin fields, which is fine — all new fields are nullable).
 
 ## Approach
 
