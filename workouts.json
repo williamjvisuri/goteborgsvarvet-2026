@@ -203,5 +203,83 @@
       }
     ],
     "note": "Gothenburg Running"
+  },
+  {
+    "date": "2026-03-26",
+    "planned_week": "v1",
+    "planned_day": "thu",
+    "type": "gym",
+    "duration_min": 45,
+    "exercises": [
+      {
+        "name": "Marklyft",
+        "sets": [
+          {
+            "reps": 8,
+            "kg": 60
+          },
+          {
+            "reps": 8,
+            "kg": 60
+          },
+          {
+            "reps": 8,
+            "kg": 60
+          }
+        ]
+      },
+      {
+        "name": "Stående press",
+        "sets": [
+          {
+            "reps": 10,
+            "kg": 20
+          },
+          {
+            "reps": 10,
+            "kg": 20
+          },
+          {
+            "reps": 10,
+            "kg": 20
+          }
+        ]
+      },
+      {
+        "name": "Omvända Flyes",
+        "sets": [
+          {
+            "reps": 12,
+            "kg": 1
+          },
+          {
+            "reps": 12,
+            "kg": 1
+          },
+          {
+            "reps": 12,
+            "kg": 1
+          }
+        ]
+      },
+      {
+        "name": "Vadpress",
+        "sets": [
+          {
+            "reps": 12,
+            "kg": 85
+          },
+          {
+            "reps": 12,
+            "kg": 85
+          },
+          {
+            "reps": 12,
+            "kg": 85
+          }
+        ]
+      }
+    ],
+    "note": "kändes bra"
   }
 ]
