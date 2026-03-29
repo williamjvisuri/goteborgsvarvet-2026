@@ -281,5 +281,15 @@
       }
     ],
     "note": "kändes bra"
+  },
+  {
+  "date": "2026-03-28",
+    "planned_week": "v1",
+    "planned_day": "sat",
+    "type": "running",
+    "distance_km": 3.5,
+    "duration_min": 24,
+    "rpe": 4,
+    "note": "gick bra. lite tyngre avslutning."
   }
 ]

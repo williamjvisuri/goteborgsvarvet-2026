@@ -18,6 +18,7 @@ RUNNING_TYPES = {"running", "long_run", "tempo"}
 GARMIN_RUNNING_TYPES = {"running", "trail_running"}
 
 SCRIPT_DIR = Path(__file__).parent.resolve()
+GARMIN_TOKENS_DIR = SCRIPT_DIR / ".garmin_tokens"
 WORKOUTS_FILE = SCRIPT_DIR / "workouts.json"
 PLAN_FILE = SCRIPT_DIR / "plan.json"
 RACE_PREDICTIONS_FILE = SCRIPT_DIR / "race_predictions.json"
@@ -169,7 +170,11 @@ def garmin_activity_to_entry(activity, plan):
 
 
 def login_garmin(email, password):
-    """Loggar in på Garmin Connect och returnerar klienten."""
+    """Loggar in på Garmin Connect och returnerar klienten.
+
+    Försöker först återanvända cachade tokens från .garmin_tokens/.
+    Om det misslyckas görs en ny inloggning och tokens sparas.
+    """
     try:
         import garminconnect
     except ImportError:
@@ -177,9 +182,24 @@ def login_garmin(email, password):
         print("Kör: pip install garminconnect", file=sys.stderr)
         sys.exit(1)
 
+    token_dir = str(GARMIN_TOKENS_DIR)
+
+    # Försök återanvända cachade tokens (ingen SSO-request behövs)
+    if GARMIN_TOKENS_DIR.exists():
+        try:
+            client = garminconnect.Garmin()
+            client.login(tokenstore=token_dir)
+            print("Återanvänder cachad session.")
+            return client
+        except Exception:
+            print("Cachad session ogiltig, loggar in på nytt...")
+
     try:
         client = garminconnect.Garmin(email, password)
         client.login()
+        # Spara tokens för framtida körningar
+        GARMIN_TOKENS_DIR.mkdir(exist_ok=True)
+        client.garth.dump(token_dir)
         return client
     except garminconnect.GarminConnectAuthenticationError:
         print(

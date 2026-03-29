@@ -3,7 +3,9 @@
 traningsplan_goteborgsvarvet.pdf
 docs/
 .garmin-session/
+.garmin_tokens/
 .venv/
 .env
 __pycache__/
 CLAUDE.md
+venv/
