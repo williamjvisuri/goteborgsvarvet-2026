@@ -283,7 +283,7 @@
     "note": "kändes bra"
   },
   {
-  "date": "2026-03-28",
+    "date": "2026-03-28",
     "planned_week": "v1",
     "planned_day": "sat",
     "type": "running",
@@ -291,5 +291,15 @@
     "duration_min": 24,
     "rpe": 4,
     "note": "gick bra. lite tyngre avslutning."
+  },
+  {
+    "date": "2026-03-29",
+    "planned_week": "v1",
+    "planned_day": "sun",
+    "type": "long_run",
+    "distance_km": 5.5,
+    "duration_min": 38,
+    "rpe": 4,
+    "note": "bra"
   }
 ]
